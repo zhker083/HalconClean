@@ -3,7 +3,81 @@
 <procedure name="main">
 <interface/>
 <body>
+<c>* 关闭所有窗口（避免重复打开）</c>
 <l>dev_close_window ()</l>
+<c></c>
+<c>* 打开一个显示窗口（512x512，白色背景）</c>
+<l>dev_open_window (0, 0, 512, 512, 'white', WindowHandle)</l>
+<c></c>
+<c>* 读取彩色图像</c>
+<l>read_image (Image, 'D:/ProgramData/GitHub/Halcon/0318/color_fuses_00.png')</l>
+<c></c>
+<c>* 显示原图</c>
+<l>dev_display (Image)</l>
+<c></c>
+<c>* =========================</c>
+<c>* 手动画ROI（矩形区域）</c>
+<c>* =========================</c>
+<c></c>
+<c>* 在当前窗口中绘制矩形</c>
+<l>draw_rectangle1 (WindowHandle, Row1, Column1, Row2, Column2)</l>
+<c></c>
+<c>* 生成矩形区域</c>
+<l>gen_rectangle1 (Rectangle, Row1, Column1, Row2, Column2)</l>
+<c></c>
+<c>* =========================</c>
+<c>* 提取ROI区域</c>
+<c>* =========================</c>
+<c></c>
+<c>* 只保留矩形区域内的图像</c>
+<l>reduce_domain (Image, Rectangle, ImageReduced)</l>
+<c></c>
+<c>* 显示ROI图像</c>
+<l>dev_display (ImageReduced)</l>
+<c></c>
+<c>* =========================</c>
+<c>* 分解RGB通道</c>
+<c>* =========================</c>
+<c></c>
+<c>* 将彩色图分成 R / G / B 三个通道</c>
+<l>decompose3 (ImageReduced, ImageR, ImageG, ImageB)</l>
+<c></c>
+<c>* =========================</c>
+<c>* 转换为 HSV 颜色空间</c>
+<c>* =========================</c>
+<c></c>
+<c>* 将 RGB 转换为 HSV H：Hue色度 S：Saturation饱和度 V：Value明度</c>
+<l>trans_from_rgb (ImageR, ImageG, ImageB, \
+                ImageH, ImageS, ImageV, \
+                'hsv')</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
 </body>
 <docu id="main">
 <parameters/>
