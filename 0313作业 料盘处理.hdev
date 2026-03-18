@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 清空窗口，打开新窗口</c>
+<l>dev_close_window ()</l>
+<l>dev_open_window (0, 0, 640, 360, 'white', WindowHandle)</l>
+<c></c>
+<c>* 读取图像</c>
+<l>read_image (Image, 'tray')</l>
+<c></c>
+<c>* 阈值分割</c>
+<l>threshold (Image, Region, 189, 255)</l>
+<c></c>
+<c>* 将连通区域分割成独立区域</c>
+<l>connection (Region, ConnectedRegions)</l>
+<c></c>
+<c>* 根据面积筛选</c>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 20000, 26000)</l>
+<c></c>
+<c>* 显示初步效果</c>
+<l>dev_display (Image)</l>
+<l>dev_display (SelectedRegions)</l>
+<c></c>
+<c>* 计算每个区域的中心坐标</c>
+<l>area_center (SelectedRegions, Area, Row, Column)</l>
+<c></c>
+<c>* 生成十字叉标记并显示</c>
+<l>gen_cross_contour_xld (Cross, Row, Column, 20, rad(90))</l>
+<l>dev_display (Image)</l>
+<l>dev_display (Cross)</l>
+<c></c>
+<c>* 坐标排序</c>
+<c>* 设定行容差</c>
+<l>Tolerance := 40</l>
+<c></c>
+<c>* 1. 先Row排序，得到排序后的索引</c>
+<l>tuple_sort_index (Row, IndicesByRow)</l>
+<c></c>
+<c>* 2. 根据索引重排行和列，根据行row从小到大排列所有坐标</c>
+<l>SortedRowTemp := Row[IndicesByRow]</l>
+<l>SortedColTemp := Column[IndicesByRow]</l>
+<c></c>
+<c>* 3. 初始化输出元组和临时行缓存</c>
+<l>RowsOut := []</l>
+<l>ColsOut := []</l>
+<l>CurrentRowRows := [SortedRowTemp[0]]</l>
+<l>CurrentRowCols := [SortedColTemp[0]]</l>
+<c></c>
+<c>* 4. 遍历所有点，进行分组</c>
+<l>for i := 1 to |SortedRowTemp| - 1 by 1</l>
+<c>    * 计算当前临时行的平均行坐标</c>
+<l>    MeanRow := mean(CurrentRowRows)</l>
+<c>    * 如果当前点的行坐标与平均行坐标之差在容差内，则属于同一行</c>
+<l>    if (abs(SortedRowTemp[i] - MeanRow) &lt;= Tolerance)</l>
+<c>        *新元组 = [旧元组+元素]</c>
+<l>        CurrentRowRows := [CurrentRowRows, SortedRowTemp[i]]</l>
+<l>        CurrentRowCols := [CurrentRowCols, SortedColTemp[i]]</l>
+<l>    else</l>
+<c>        * 当前行结束：先将该行内的点按列坐标排序</c>
+<l>        tuple_sort_index (CurrentRowCols, ColIndices)</l>
+<l>        for j := 0 to |CurrentRowCols| - 1 by 1</l>
+<l>            colIdx := ColIndices[j]</l>
+<l>            RowsOut := [RowsOut, CurrentRowRows[colIdx]]</l>
+<l>            ColsOut := [ColsOut, CurrentRowCols[colIdx]]</l>
+<l>        endfor</l>
+<c>        * 开始新行，用当前点初始化</c>
+<l>        CurrentRowRows := [SortedRowTemp[i]]</l>
+<l>        CurrentRowCols := [SortedColTemp[i]]</l>
+<l>    endif</l>
+<l>endfor</l>
+<c></c>
+<c>* 5. 处理最后一行（若不为空）</c>
+<l>if (|CurrentRowRows| &gt; 0)</l>
+<l>    tuple_sort_index (CurrentRowCols, ColIndices)</l>
+<l>    for j := 0 to |CurrentRowCols| - 1 by 1</l>
+<l>        colIdx := ColIndices[j]</l>
+<l>        RowsOut := [RowsOut, CurrentRowRows[colIdx]]</l>
+<l>        ColsOut := [ColsOut, CurrentRowCols[colIdx]]</l>
+<l>    endfor</l>
+<l>endif</l>
+<c></c>
+<c></c>
+<l>*dev_display (Image)</l>
+<l>set_display_font (WindowHandle, 20, 'mono', 'true', 'false')</l>
+<l>for i := 0 to |RowsOut| - 1 by 1</l>
+<l>    dev_disp_text ( i, 'image', RowsOut[i], ColsOut[i], 'red', ['box'], [false])</l>
+<l>endfor</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
