@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>*图像属性操作</c>
+<c></c>
+<l>read_image (Traffic1, 'D:/ProgramData/GitHub/Halcon/traffic1.png')</l>
+<c>*延迟</c>
+<l>wait_seconds (0.5)</l>
+<c></c>
+<l>read_image (Traffic2, 'D:/ProgramData/GitHub/Halcon/traffic2.png')</l>
+<c></c>
+<c>*sub_image(ImageMinuend, ImageSubtrahend : ImageSub : Mult, Add : )</c>
+<c>*描述</c>
+<c>*算符减去两张图像。灰色值 （g1，g2） 的输入图像（sub_imageImageMinuend以及ImageSubtrahend）的变换方式如下：</c>
+<c>*g' ：= （g1 - g2） * Mult + Add</c>
+<l>sub_image (Traffic1, Traffic2, ImageSub, 1, 0)</l>
+<c></c>
+<c>*blod 斑点分析</c>
+<l>threshold (ImageSub, Region, 60, 255)</l>
+<c></c>
+<c>*smallest_rectangle1(Regions : : : Row1, Column1, Row2, Column2)</c>
+<c>*计算区域的最小外接矩形，矩形与坐标轴平行（不旋转），</c>
+<c>*返回四个坐标 Row1、Column1、Row2、Column2；若输入多个区域，则结果按元组一一对应输出。</c>
+<l>smallest_rectangle1 (Region, Row1, Column1, Row2, Column2)</l>
+<c></c>
+<c>*生成矩阵</c>
+<l>gen_rectangle1 (Rectangle, Row1, Column1, Row2, Column2)</l>
+<c></c>
+<c>*可视化</c>
+<l>dev_set_draw ('margin')</l>
+<l>dev_clear_window ()</l>
+<l>dev_display (Traffic2)</l>
+<l>dev_display (Rectangle)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

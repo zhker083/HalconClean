@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>*UI 交互 -1 </c>
+<l>read_image (Image, 'printer_chip/printer_chip_01')</l>
+<c></c>
+<l>dev_set_draw ('margin')</l>
+<c></c>
+<c>*创建 矩形1  区域</c>
+<c>*输出ROI_0   区域</c>
+<c>*输入 矩形1 起点坐标 行row = 450 列col = 300</c>
+<c>*输入 矩形1 终点坐标 行row = 780 列col = 600</c>
+<l>gen_rectangle1 (ROI_1, 450, 300, 780, 600)</l>
+<c></c>
+<c>*创建 矩形2 区域</c>
+<c>*输出 ROI_2 区域</c>
+<c>*输入 中心点坐标 行row 列 col 中心点角度 phi 矩形row  半边长1 length1 矩形col边长2 length2</c>
+<l>gen_rectangle2 (ROI_2, 378.658, 715.673, rad(45), 50, 100)</l>
+<c></c>
+<c>*创建 圆 区域</c>
+<c>*输出 ROI_1 区域</c>
+<c>*输入 圆心坐标 行row 列col 半径 r</c>
+<l>gen_circle (ROI_3, 800.108, 1137.19, 56.3795)</l>
+<c></c>
+<c>*创建 椭圆 区域</c>
+<c>*输出ROI_4 区域</c>
+<c>*输入 中心点坐标 行row 列 col 中心点角度 phi row边长1 col边长2</c>
+<l>gen_ellipse (ROI_4, 562.915, 732.833, rad(0), 80, 40)</l>
+<c></c>
+<l>dev_get_window (WindowHandle)</l>
+<c></c>
+<c>*代码绘制 draw</c>
+<l>draw_circle (WindowHandle, Row, Column, Radius)</l>
+<l>draw_ellipse (WindowHandle, Row1, Column1, Phi, Radius1, Radius2)</l>
+<l>draw_rectangle1 (WindowHandle, Row11, Column11, Row2, Column2)</l>
+<l>draw_rectangle2 (WindowHandle, Row3, Column3, Phi1, Length1, Length2)</l>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

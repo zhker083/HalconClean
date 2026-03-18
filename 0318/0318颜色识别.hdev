@@ -3,7 +3,7 @@
 <procedure name="main">
 <interface/>
 <body>
-<c>*UI 交互 -1 </c>
+<l>dev_close_window ()</l>
 </body>
 <docu id="main">
 <parameters/>
