@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* ================================</c>
+<c>* 五根线颜色识别 + 顺序判断</c>
+<c>* 正确顺序：black brown orange pink yellow</c>
+<c>* ================================</c>
+<c></c>
+<l>dev_update_off ()</l>
+<l>dev_close_window ()</l>
+<c></c>
+<l>read_image (Cable1, 'D:/ProgramData/GitHub/Halcon/0318/作业/cable1.png')</l>
+<c></c>
+<l>crop_part (Cable1, ImagePart, 220, 380, 70, 110)</l>
+<c></c>
+<l>get_image_size (ImagePart, Width, Height)</l>
+<l>dev_open_window (0, 0, Width*5, Height*5, 'black', WH)</l>
+<l>dev_display (ImagePart)</l>
+<c></c>
+<l>decompose3 (ImagePart, ImageR, ImageG, ImageB)</l>
+<l>trans_from_rgb (ImageR, ImageG, ImageB, ImageH, ImageS, ImageV, 'hsv')</l>
+<c></c>
+<c>* 储存检测到的颜色和坐标</c>
+<l>DetectedRows := []</l>
+<l>DetectedColors := []</l>
+<c></c>
+<c>* ================================</c>
+<c>* 1. 先分黄色 橙色 粉红色</c>
+<c>* ================================</c>
+<l>threshold (ImageS, RegionHighS, 140, 255)</l>
+<l>reduce_domain (ImageH, RegionHighS, HighS)</l>
+<c></c>
+<l>Color1 := ['orange','yellow','pink']</l>
+<l>HueMin := [0,16,222]</l>
+<l>HueMax := [15,46,250]</l>
+<c></c>
+<l>for Index := 0 to |Color1|-1 by 1</l>
+<l>    threshold (HighS, Region1, HueMin[Index], HueMax[Index])</l>
+<l>    connection (Region1, ConnectedRegions)</l>
+<l>    select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 500, 99999)</l>
+<c></c>
+<l>    count_obj (SelectedRegions, Number)</l>
+<l>    if (Number &gt; 0)</l>
+<l>        select_shape_std (SelectedRegions, MaxRegion, 'max_area', 70)</l>
+<l>        area_center (MaxRegion, Area, Row1, Col1)</l>
+<l>        gen_cross_contour_xld (Cross1, Row1, Col1, 6, 0.785398)</l>
+<l>        dev_display (Cross1)</l>
+<l>        dev_disp_text (Color1[Index], 'image', Row1, Col1, 'black', [], [])</l>
+<c></c>
+<l>        DetectedRows := [DetectedRows, Row1]</l>
+<l>        DetectedColors := [DetectedColors, Color1[Index]]</l>
+<l>    endif</l>
+<l>endfor</l>
+<c></c>
+<c>* ================================</c>
+<c>* 2. 再分黑色和棕色</c>
+<c>* ================================</c>
+<l>threshold (ImageS, RegionLowS, 0,139)</l>
+<l>reduce_domain (ImageV, RegionLowS, LowS)</l>
+<l>Color2 := ['black','brown']</l>
+<l>VMin := [0,56]</l>
+<l>VMax := [55,120]</l>
+<c></c>
+<l>for Index := 0 to |Color2|-1 by 1</l>
+<l>    threshold (LowS, Region2, VMin[Index], VMax[Index])</l>
+<l>    connection (Region2, ConnectedRegions2)</l>
+<l>    fill_up (ConnectedRegions2, RegionFillUp2)</l>
+<l>    select_shape (RegionFillUp2, SelectedRegions2, 'area', 'and', 500, 99999)</l>
+<c></c>
+<l>    count_obj (SelectedRegions2, Number2)</l>
+<l>    if (Number2 &gt; 0)</l>
+<l>        select_shape_std (SelectedRegions2, MaxRegion2, 'max_area', 70)</l>
+<l>        area_center (MaxRegion2, Area2, Row2, Col2)</l>
+<l>        gen_cross_contour_xld (Cross2, Row2, Col2, 6, 0.785398)</l>
+<l>        dev_display (Cross2)</l>
+<l>        dev_disp_text (Color2[Index], 'image', Row2, Col2, 'black', [], [])</l>
+<c></c>
+<l>        DetectedRows := [DetectedRows, Row2]</l>
+<l>        DetectedColors := [DetectedColors, Color2[Index]]</l>
+<l>    endif</l>
+<l>endfor</l>
+<c></c>
+<c>* ================================</c>
+<c>* 3. 按坐标排序（从上到下）</c>
+<c>* ================================</c>
+<l>tuple_sort_index (DetectedRows, SortIndex)</l>
+<c></c>
+<l>ActualColorSort := []</l>
+<l>ActualRowsSort := []</l>
+<c></c>
+<l>for I := 0 to |SortIndex|-1 by 1</l>
+<l>    ActualColorSort := [ActualColorSort, DetectedColors[SortIndex[I]]]</l>
+<l>    ActualRowsSort := [ActualRowsSort, DetectedRows[SortIndex[I]]]</l>
+<l>endfor</l>
+<c></c>
+<c>* ================================</c>
+<c>* 4. 和正确顺序比较</c>
+<c>* ================================</c>
+<l>RightColor := ['black','brown','orange','pink','yellow']</l>
+<l>ErrorIndex := []</l>
+<c></c>
+<l>for I := 0 to |RightColor|-1 by 1</l>
+<l>    if (ActualColorSort[I] != RightColor[I])</l>
+<l>        ErrorIndex := [ErrorIndex, I+1]</l>
+<l>    endif</l>
+<l>endfor</l>
+<c></c>
+<c>* ================================</c>
+<c>* 5. 显示结果</c>
+<c>* ================================</c>
+<l>if (|ErrorIndex| = 0)</l>
+<l>    dev_disp_text ('正确', 'window', 20, 20, 'green', [], [])</l>
+<l>else</l>
+<l>    dev_disp_text ('顺序有错误', 'window', 20, 20, 'red', [], [])</l>
+<c></c>
+<l>    for I := 0 to |ErrorIndex|-1 by 1</l>
+<l>        Idx := ErrorIndex[I] - 1</l>
+<l>        Msg := '第' + ErrorIndex[I]$'d' + '根错误，应为 ' + RightColor[Idx]</l>
+<l>        dev_disp_text (Msg, 'window', 45 + I*20, 20, 'red', [], [])</l>
+<l>    endfor</l>
+<l>endif</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
