@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* =========================</c>
+<c>* OCR光学字符识别</c>
+<c>* 功能：提取车牌字符区域 → 排序 → 逐个OCR识别</c>
+<c>* =========================</c>
+<c></c>
+<c></c>
+<c>* 1. 读取原始图像</c>
+<c>* 输入：</c>
+<c>*   'D:/HTH/课堂资料/Image/audi2.png'  -&gt; 图像文件路径</c>
+<c>* 输出：</c>
+<c>*   Audi2 -&gt; 读取到的原始图像</c>
+<l>read_image (Audi2, 'D:/HTH/课堂资料/Image/audi2.png') </l>
+<c></c>
+<c></c>
+<c>* 2. 获取当前显示窗口句柄</c>
+<c>* 输入：</c>
+<c>*   无</c>
+<c>* 输出：</c>
+<c>*   WH -&gt; 当前HDevelop显示窗口句柄</c>
+<c>* 作用：</c>
+<c>*   后面 draw_rectangle2 要在这个窗口中手动画框</c>
+<l>dev_get_window (WH) </l>
+<c></c>
+<c></c>
+<c>* 3. 手动画一个旋转矩形，框住车牌区域</c>
+<c>* 输入：</c>
+<c>*   WH -&gt; 当前显示窗口</c>
+<c>* 人工交互输入：</c>
+<c>*   鼠标拖动确定矩形位置、大小和旋转角度</c>
+<c>* 输出：</c>
+<c>*   Row     -&gt; 矩形中心行坐标</c>
+<c>*   Column  -&gt; 矩形中心列坐标</c>
+<c>*   Phi     -&gt; 矩形旋转角度</c>
+<c>*   Length1 -&gt; 矩形长半轴</c>
+<c>*   Length2 -&gt; 矩形短半轴</c>
+<c>* 作用：</c>
+<c>*   用人工方式圈出车牌区域，减少后续干扰</c>
+<l>draw_rectangle2 (WH, Row, Column, Phi, Length1, Length2)</l>
+<c></c>
+<c></c>
+<c>* 4. 根据上一步得到的参数，生成旋转矩形区域</c>
+<c>* 输入：</c>
+<c>*   Row, Column, Phi, Length1, Length2</c>
+<c>* 输出：</c>
+<c>*   Rectangle -&gt; 生成的旋转矩形区域</c>
+<c>* 作用：</c>
+<c>*   将人工画出的矩形正式转成区域对象，供后续裁剪使用</c>
+<l>gen_rectangle2 (Rectangle, Row, Column, Phi, Length1, Length2) </l>
+<c></c>
+<c></c>
+<c>* 5. 利用矩形区域缩小处理范围，只保留车牌部分</c>
+<c>* 输入：</c>
+<c>*   Audi2     -&gt; 原始图像</c>
+<c>*   Rectangle -&gt; 车牌区域</c>
+<c>* 输出：</c>
+<c>*   ImageReduced -&gt; 仅在Rectangle区域内有效的图像</c>
+<c>* 作用：</c>
+<c>*   限定后续阈值分割只在车牌范围内进行，减少背景干扰</c>
+<l>reduce_domain (Audi2, Rectangle, ImageReduced) </l>
+<c></c>
+<c></c>
+<c>* 6. 阈值分割，提取较暗的字符区域</c>
+<c>* 输入：</c>
+<c>*   ImageReduced -&gt; 裁剪后的图像</c>
+<c>*   34, 73       -&gt; 灰度阈值下限和上限</c>
+<c>* 输出：</c>
+<c>*   Region -&gt; 阈值分割得到的二值区域</c>
+<c>* 作用：</c>
+<c>*   提取灰度在34到73之间的区域，通常希望把车牌字符分割出来</c>
+<l>threshold (ImageReduced, Region, 34, 73) </l>
+<c></c>
+<c></c>
+<c>* 7. 连通域分析，把分割结果拆分成一个个独立区域</c>
+<c>* 输入：</c>
+<c>*   Region -&gt; 阈值分割后的区域</c>
+<c>* 输出：</c>
+<c>*   ConnectedRegions -&gt; 连通域对象集合，每个独立区域算一个对象</c>
+<c>* 作用：</c>
+<c>*   将多个字符区域分开，便于后续逐个筛选和识别</c>
+<l>connection (Region, ConnectedRegions) </l>
+<c></c>
+<c></c>
+<c>* 8. 按面积筛选目标区域，去掉较小噪声</c>
+<c>* 输入：</c>
+<c>*   ConnectedRegions -&gt; 连通域集合</c>
+<c>*   'area'           -&gt; 以面积作为筛选特征</c>
+<c>*   'and'            -&gt; 范围筛选方式</c>
+<c>*   600, 99999       -&gt; 面积下限和上限</c>
+<c>* 输出：</c>
+<c>*   SelectedRegions -&gt; 面积符合要求的区域集合</c>
+<c>* 作用：</c>
+<c>*   去除太小的噪声区域，保留可能是字符的目标</c>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 600, 99999) </l>
+<c></c>
+<c></c>
+<c>* 9. 读取OCR分类器</c>
+<c>* 输入：</c>
+<c>*   'Industrial_0-9A-Z_NoRej.omc'</c>
+<c>*   含义：</c>
+<c>*   Industrial -&gt; 工业风格字符</c>
+<c>*   0-9A-Z     -&gt; 可识别数字和大写字母</c>
+<c>*   NoRej      -&gt; 不带拒识类，尽量给出识别结果</c>
+<c>* 输出：</c>
+<c>*   OCRHandle -&gt; OCR分类器句柄</c>
+<c>* 作用：</c>
+<c>*   后面 do_ocr_multi_class_mlp 识别字符时要使用这个句柄</c>
+<l>read_ocr_class_mlp ('Industrial_0-9A-Z_NoRej.omc', OCRHandle) </l>
+<c></c>
+<c></c>
+<c>* 10. 对字符区域进行排序</c>
+<c>* 输入：</c>
+<c>*   SelectedRegions -&gt; 筛选后的字符区域集合</c>
+<c>*   'character'     -&gt; 按字符方式排序</c>
+<c>*   'true'          -&gt; 升序</c>
+<c>*   'row'           -&gt; 先按行再按列，通常效果是从左到右</c>
+<c>* 输出：</c>
+<c>*   SortedRegions -&gt; 排好顺序的字符区域集合</c>
+<c>* 作用：</c>
+<c>*   保证后面识别时字符顺序与车牌实际顺序一致</c>
+<l>sort_region (SelectedRegions, SortedRegions, 'character', 'true', 'row') </l>
+<c></c>
+<c></c>
+<c>* 11. 统计排序后字符区域的个数</c>
+<c>* 输入：</c>
+<c>*   SortedRegions -&gt; 排好序的区域集合</c>
+<c>* 输出：</c>
+<c>*   Number -&gt; 字符区域个数</c>
+<c>* 作用：</c>
+<c>*   为后面的 for 循环提供次数</c>
+<l>count_obj (SortedRegions, Number) </l>
+<c></c>
+<c></c>
+<c>* 12. 逐个取出字符区域并进行OCR识别</c>
+<c>* 输入：</c>
+<c>*   Index = 1 到 Number</c>
+<c>* 输出：</c>
+<c>*   每次循环得到当前第 Index 个字符区域 ObjectSelected</c>
+<c>* 作用：</c>
+<c>*   一个字符一个字符地识别</c>
+<l>for Index := 1 to Number by 1 </l>
+<c></c>
+<c>    * 12.1 取出排好序后的第 Index 个字符区域</c>
+<c>    * 输入：</c>
+<c>    *   SortedRegions -&gt; 排好序的字符区域集合</c>
+<c>    *   Index         -&gt; 当前要取出的序号（从1开始）</c>
+<c>    * 输出：</c>
+<c>    *   ObjectSelected -&gt; 当前选中的单个字符区域</c>
+<c>    * 作用：</c>
+<c>    *   从多个字符中取出当前这一个字符，交给OCR识别</c>
+<l>    select_obj (SortedRegions, ObjectSelected,Index) </l>
+<c></c>
+<c></c>
+<c>    * 12.2 对当前单个字符区域做OCR识别</c>
+<c>    * 输入：</c>
+<c>    *   ObjectSelected -&gt; 当前单个字符区域</c>
+<c>    *   ImageReduced   -&gt; 车牌区域图像</c>
+<c>    *   OCRHandle      -&gt; OCR分类器句柄</c>
+<c>    * 输出：</c>
+<c>    *   Class       -&gt; 识别出的字符类别（如'A'、'8'）</c>
+<c>    *   Confidence  -&gt; 识别置信度</c>
+<c>    * 作用：</c>
+<c>    *   对当前字符区域进行识别，得到字符结果和可信度</c>
+<c>    *</c>
+<c>    * 注意：</c>
+<c>    *   你这里虽然用了 do_ocr_multi_class_mlp，</c>
+<c>    *   但因为输入的是 ObjectSelected（单个区域），</c>
+<c>    *   所以本质上现在是在“逐个识别”。</c>
+<l>    do_ocr_multi_class_mlp (ObjectSelected, ImageReduced, OCRHandle, Class, Confidence) </l>
+<l>    if (Confidence &gt; 0.98)</l>
+<c>        </c>
+<l>        dev_disp_text (Class, 'window', Index*15, 15, 'red', ['box'], ['false'])</l>
+<c>        </c>
+<l>    endif</l>
+<l>endfor</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

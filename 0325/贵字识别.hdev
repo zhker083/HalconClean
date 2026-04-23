@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image (Image, 'D:/HTH/课堂资料/Image/车牌.png')</l>
+<l>dev_display (Image)</l>
+<l>dev_get_window (WH)</l>
+<l>draw_rectangle1 (WH, Row1, Column1, Row2, Column2)</l>
+<l>gen_rectangle1 (Rectangle, Row1, Column1, Row2, Column2)</l>
+<l>reduce_domain (Image, Rectangle, ImageReduced)</l>
+<l>rgb3_to_gray (ImageReduced, ImageReduced, ImageReduced, ImageGray)</l>
+<l>invert_image (ImageGray, Image)</l>
+<c></c>
+<c></c>
+<l>threshold (Image, Region, 86, 170)</l>
+<c></c>
+<l>connection (Region, ConnectedRegions)</l>
+<c></c>
+<l>dilation_circle (Region, RegionDilation, 2)</l>
+<l>union1 (RegionDilation, RegionUnion)</l>
+<l>reduce_domain (Image, RegionUnion, ImageReduced1)</l>
+<l>threshold (ImageReduced1, Region1, 128, 255)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

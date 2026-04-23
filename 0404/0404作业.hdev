@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>*0404作业2</c>
+<c></c>
+<l>read_image (Image, 'D:/ProgramData/GitHub/Halcon/0404/7_1.tif')</l>
+<c></c>
+<c></c>
+<l>dev_get_window (WindowHandle)</l>
+<l>draw_rectangle1 (WindowHandle, Row1, Col1, Row2, Col2)</l>
+<l>gen_rectangle1 (ROI, Row1, Col1, Row2, Col2)</l>
+<l>reduce_domain (Image, ROI, ImageReduced)</l>
+<l>dev_display (ImageReduced)</l>
+<c></c>
+<c>* 2. 均值滤波，得到局部背景图</c>
+<c>* 窗口不要太小，否则背景平滑不明显</c>
+<l>mean_image (ImageReduced, ImageMean, 15, 15)</l>
+<c></c>
+<c>* 3. 动态阈值，提取比局部背景更暗的区域</c>
+<c>* dark 表示提取暗区域</c>
+<c>* 这个偏移值很关键，可在 8~20 之间调</c>
+<l>dyn_threshold (ImageReduced, ImageMean, RegionDyn, 12, 'dark')</l>
+<c></c>
+<c>* 4. 连通域</c>
+<l>connection (RegionDyn, ConnectedRegions)</l>
+<c></c>
+<c>* 5. 按面积和细长度筛选，保留弧线</c>
+<c>* area 防止小噪声</c>
+<c>* anisometry 保留细长目标</c>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 10000, 999999)</l>
+<c></c>
+<c>* 6. 合并目标区域</c>
+<l>union1 (SelectedRegions, RegionUnion)</l>
+<c></c>
+<c>* 7. 闭运算，让弧线更连贯一点</c>
+<l>closing_circle (RegionUnion, RegionClosing, 3.5)</l>
+<c></c>
+<c></c>
+<c></c>
+<c>* 10. 显示结果</c>
+<l>dev_display (Image)</l>
+<l>dev_set_color ('red')</l>
+<c></c>
+<l>dev_display (RegionClosing)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

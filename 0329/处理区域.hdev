@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image (Image, 'rim')</l>
+<l>threshold (Image, Region, 70, 100)</l>
+<c></c>
+<l>connection (Region, ConnectedRegions)</l>
+<c></c>
+<l>union1 (ConnectedRegions, RegionUnion)</l>
+<c></c>
+<l>union2 (Region, RegionUnion, RegionUnion1)</l>
+<c></c>
+<l>dev_display (Image)</l>
+<c></c>
+<l>gen_rectangle1 (ROI_0, 137.014, 189.755, 268.473, 289.827)</l>
+<l>gen_rectangle1 (ROI_1, 214.851, 250.264, 335.932, 364.3)</l>
+<l>dev_set_color ('green')</l>
+<l>intersection (ROI_0, ROI_1, RegionIntersection)</l>
+<l>dev_display (Image)</l>
+<l>dev_set_color ('red')</l>
+<l>dev_display (ROI_0)</l>
+<l>dev_set_color ('green')</l>
+<l>dev_display (RegionIntersection)</l>
+<c></c>
+<l>dev_display (Image)</l>
+<l>difference (ROI_0,RegionIntersection,diff)</l>
+<c></c>
+<l>complement (RegionIntersection,RegionComplement)</l>
+<l>dev_display (Image)</l>
+<l>dev_display (RegionComplement)</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

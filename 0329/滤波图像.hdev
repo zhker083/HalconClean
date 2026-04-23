@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image (Image, 'D:/ProgramData/GitHub/Halcon/0329/镜筒/16_23_42_048.png')</l>
+<c></c>
+<c>*获取窗口句柄</c>
+<l>dev_get_window (WH)</l>
+<c></c>
+<c>*剪切</c>
+<l>draw_rectangle1 (WH, Row1, Column1, Row2, Column2)</l>
+<c></c>
+<c>*生成</c>
+<l>gen_rectangle1 (Rectangle, Row1, Column1, Row2, Column2)</l>
+<c></c>
+<c>*图像剪切</c>
+<l>reduce_domain (Image, Rectangle, ImageReduced)</l>
+<c></c>
+<c>*提取轮廓</c>
+<l>edges_sub_pix (ImageReduced, Edges, 'canny', 1, 20, 40)</l>
+<c></c>
+<c>*均值滤波</c>
+<l>mean_image (ImageReduced, ImageMean, 3, 3)</l>
+<l>edges_sub_pix (ImageMean, Edges1, 'canny', 1, 20, 40)</l>
+<c></c>
+<l>sp_distribution (5, 5, Distribution)</l>
+<l>add_noise_distribution (Image, ImageNoise, Distribution)</l>
+<l>edges_sub_pix (ImageNoise, Edges2, 'canny', 1, 20, 40)</l>
+<l>median_image (ImageNoise, ImageMedian, 'circle', 2, 'mirrored')</l>
+<c></c>
+<l>dev_display (Image)</l>
+<c></c>
+<l>gauss_distribution (20, Distribution1)</l>
+<l>add_noise_distribution (Image, ImageNoise1, Distribution1)</l>
+<l>edges_sub_pix (ImageNoise1, Edges3, 'canny', 1, 20, 40)</l>
+<c></c>
+<l>gauss_filter (ImageNoise1, ImageGauss, 5)</l>
+<c></c>
+<l>edges_sub_pix (ImageGauss, Edges4, 'canny', 1, 20, 40)</l>
+<c></c>
+<c>*?高斯滤波和均值滤波对边缘提取谁的作用大?</c>
+<c>*高斯滤波  使大部分灰度值 黑的更黑 白的更白 提高了对比度</c>
+<c>*高斯滤波和均值滤波都叫平滑滤波</c>
+<l>dev_display (Image)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

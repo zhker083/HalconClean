@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 自动更新窗口关闭</c>
+<c>* 窗口同步更新会慢一些</c>
+<l>dev_update_off ()</l>
+<c></c>
+<c>* 图像文件路径</c>
+<l>list_image_files ('D:/ProgramData/GitHub/Halcon/0322/barcode/datacode/qrcode', 'default', [], ImageFiles)</l>
+<c></c>
+<l>dev_set_draw ('margin')</l>
+<l>dev_get_window (WindowHandle)</l>
+<c></c>
+<c>* 标准模式 --&gt; 图像比较清晰</c>
+<l>create_data_code_2d_model ('QR Code', \
+                           'default_parameters', \
+                           'standard_recognition', \
+                           DataCodeHandleStandard)</l>
+<c></c>
+<c>* 增强模式 --&gt; 稍微模糊</c>
+<l>create_data_code_2d_model ('QR Code', \
+                           'default_parameters', \
+                           'enhanced_recognition', \
+                           DataCodeHandleEnhanced)</l>
+<c></c>
+<c>* 最大模式 --&gt; 模糊 + 二维码比较大 + 黑点较小 + 间隔较小</c>
+<l>create_data_code_2d_model ('QR Code', \
+                           'default_parameters', \
+                           'maximum_recognition', \
+                           DataCodeHandleMaximum)</l>
+<c></c>
+<l>for Index := 0 to |ImageFiles| - 1 by 1</l>
+<c></c>
+<l>    read_image (Image, ImageFiles[Index])</l>
+<l>    dev_display (Image)</l>
+<c></c>
+<c>    * =========================</c>
+<c>    * standard 模式计时</c>
+<c>    * =========================</c>
+<l>    count_seconds (T1)</l>
+<l>    for Index1 := 1 to 5 by 1</l>
+<l>        find_data_code_2d (Image, SymbolXLDsStandard, DataCodeHandleStandard, [], [], ResultHandlesStandard, DecodedDataStringsStandard)</l>
+<l>    endfor</l>
+<l>    count_seconds (T2)</l>
+<l>    TimeStandard := 1000 * (T2 - T1) / 5</l>
+<c></c>
+<c>    * =========================</c>
+<c>    * enhanced 模式计时</c>
+<c>    * =========================</c>
+<l>    count_seconds (T3)</l>
+<l>    for Index1 := 1 to 5 by 1</l>
+<l>        find_data_code_2d (Image, SymbolXLDsEnhanced, DataCodeHandleEnhanced, [], [], ResultHandlesEnhanced, DecodedDataStringsEnhanced)</l>
+<l>    endfor</l>
+<l>    count_seconds (T4)</l>
+<l>    TimeEnhanced := 1000 * (T4 - T3) / 5</l>
+<c></c>
+<c>    * =========================</c>
+<c>    * maximum 模式计时</c>
+<c>    * =========================</c>
+<l>    count_seconds (T5)</l>
+<l>    for Index1 := 1 to 5 by 1</l>
+<l>        find_data_code_2d (Image, SymbolXLDsMaximum, DataCodeHandleMaximum, [], [], ResultHandlesMaximum, DecodedDataStringsMaximum)</l>
+<l>    endfor</l>
+<l>    count_seconds (T6)</l>
+<l>    TimeMaximum := 1000 * (T6 - T5) / 5</l>
+<c></c>
+<c>    * =========================</c>
+<c>    * 排序：从小到大</c>
+<c>    * =========================</c>
+<l>    ModeNames := ['standard', 'enhanced', 'maximum']</l>
+<l>    TimeValues := [TimeStandard, TimeEnhanced, TimeMaximum]</l>
+<c></c>
+<l>    tuple_sort_index (TimeValues, SortedIndices)</l>
+<c></c>
+<l>    SortedText1 := ModeNames[SortedIndices[0]] + ': ' + TimeValues[SortedIndices[0]]$'.2f' + ' ms'</l>
+<l>    SortedText2 := ModeNames[SortedIndices[1]] + ': ' + TimeValues[SortedIndices[1]]$'.2f' + ' ms'</l>
+<l>    SortedText3 := ModeNames[SortedIndices[2]] + ': ' + TimeValues[SortedIndices[2]]$'.2f' + ' ms'</l>
+<c></c>
+<c>    * =========================</c>
+<c>    * 左上角显示排序结果</c>
+<c>    * =========================</c>
+<l>    disp_message (WindowHandle, '排序(从小到大)', 'image', 20, 20, 'yellow', 'true')</l>
+<l>    disp_message (WindowHandle, '最快: ' + SortedText1, 'image', 50, 20, 'green', 'true')</l>
+<l>    disp_message (WindowHandle, '第二: ' + SortedText2, 'image', 80, 20, 'yellow', 'true')</l>
+<l>    disp_message (WindowHandle, '最慢: ' + SortedText3, 'image', 110, 20, 'red', 'true')</l>
+<c></c>
+<c>    * =========================</c>
+<c>    * 同时显示三种模式各自耗时</c>
+<c>    * =========================</c>
+<l>    disp_message (WindowHandle, 'standard: ' + TimeStandard$'.2f' + ' ms', 'image', 150, 20, 'white', 'true')</l>
+<l>    disp_message (WindowHandle, 'enhanced: ' + TimeEnhanced$'.2f' + ' ms', 'image', 180, 20, 'white', 'true')</l>
+<l>    disp_message (WindowHandle, 'maximum: ' + TimeMaximum$'.2f' + ' ms', 'image', 210, 20, 'white', 'true')</l>
+<c></c>
+<c>    * =========================</c>
+<c>    * 这里用 maximum 模式结果做显示</c>
+<c>    * =========================</c>
+<l>    if (|DecodedDataStringsMaximum| &gt; 0)</l>
+<l>        dev_display (SymbolXLDsMaximum)</l>
+<l>        gen_region_contour_xld (SymbolXLDsMaximum, Region, 'filled')</l>
+<l>        area_center (Region, Area, Row, Column)</l>
+<l>        disp_message (WindowHandle, DecodedDataStringsMaximum, 'image', Row, Column, 'green', 'true')</l>
+<l>    else</l>
+<l>        disp_message (WindowHandle, '未识别到二维码', 'image', 240, 20, 'red', 'true')</l>
+<l>    endif</l>
+<c></c>
+<c>    * 延时 1 秒</c>
+<l>    wait_seconds (1)</l>
+<c></c>
+<l>endfor</l>
+<c></c>
+<l>clear_data_code_2d_model (DataCodeHandleStandard)</l>
+<l>clear_data_code_2d_model (DataCodeHandleEnhanced)</l>
+<l>clear_data_code_2d_model (DataCodeHandleMaximum)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

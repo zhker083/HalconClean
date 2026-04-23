@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_close_window ()</l>
+<c></c>
+<l>read_image (ImageColor, 'D:/ProgramData/GitHub/Halcon/0415/phone.png')</l>
+<l>rgb3_to_gray (ImageColor, ImageColor, ImageColor, ImageGray)</l>
+<c></c>
+<l>get_image_size (ImageGray, ImageWidth, ImageHeight)</l>
+<l>dev_open_window (0, 0, ImageWidth * 0.4, ImageHeight * 0.4, 'black', WindowHandle)</l>
+<l>dev_display (ImageGray)</l>
+<c></c>
+<l>EdgeThreshold := 65</l>
+<l>CaliperHalfWidth := 5</l>
+<l>MeasureSigma := 1</l>
+<c></c>
+<l>set_system ('int_zooming', 'true')</l>
+<c></c>
+<l>StartRows := [121.471, 127.107, 144.641, 162.174, 179.708, 213.522, 241.701, 258.608]</l>
+<l>StartCols := [290.247, 253.28, 218.819, 193.13, 166.814, 153.657, 153.657, 156.163]</l>
+<l>EndRows   := [175.324, 184.717, 191.605, 204.756, 217.279, 234.813, 248.589, 259.786]</l>
+<l>EndCols   := [290.874, 274.583, 254.533, 249.521, 239.496, 228.844, 242.629, 254.887]</l>
+<c></c>
+<l>Rows := []</l>
+<l>Cols := []</l>
+<l>gen_empty_obj (CaliperContours)</l>
+<c></c>
+<l>for I := 0 to 7 by 1</l>
+<l>    CenterRow := 0.5 * (StartRows[I] + EndRows[I])</l>
+<l>    CenterCol := 0.5 * (StartCols[I] + EndCols[I])</l>
+<l>    DeltaRow := StartRows[I] - EndRows[I]</l>
+<l>    DeltaCol := EndCols[I] - StartCols[I]</l>
+<l>    CaliperAngle := atan2(DeltaRow, DeltaCol)</l>
+<l>    CaliperHalfLength := 0.5 * sqrt(DeltaRow * DeltaRow + DeltaCol * DeltaCol)</l>
+<c></c>
+<l>    gen_measure_rectangle2 (CenterRow, CenterCol, CaliperAngle, \
+                            CaliperHalfLength, CaliperHalfWidth, \
+                            ImageWidth, ImageHeight, 'nearest_neighbor', MeasureHandle)</l>
+<c></c>
+<l>    gen_rectangle2_contour_xld (OneCaliperContour, CenterRow, CenterCol, CaliperAngle, \
+                                CaliperHalfLength, CaliperHalfWidth)</l>
+<l>    concat_obj (CaliperContours, OneCaliperContour, CaliperContours)</l>
+<c></c>
+<l>    measure_pos (ImageGray, MeasureHandle, MeasureSigma, EdgeThreshold, \
+                 'negative', 'first', EdgeRow, EdgeCol, EdgeAmplitude, EdgeDistance)</l>
+<c></c>
+<l>    Rows := [Rows, EdgeRow[0]]</l>
+<l>    Cols := [Cols, EdgeCol[0]]</l>
+<c></c>
+<l>    close_measure (MeasureHandle)</l>
+<l>endfor</l>
+<c></c>
+<l>gen_contour_polygon_xld (ArcPointsContour, Rows, Cols)</l>
+<c></c>
+<l>fit_circle_contour_xld (ArcPointsContour, 'algebraic', -1, 0, 0, 3, 2, \
+                        CircleRow, CircleCol, CircleRadius, StartPhi, EndPhi, PointOrder)</l>
+<c></c>
+<l>gen_circle_contour_xld (FittedArc, CircleRow, CircleCol, CircleRadius, \
+                        StartPhi, EndPhi, PointOrder, 1)</l>
+<c></c>
+<l>gen_cross_contour_xld (PointCross, Rows, Cols, 6, 0.785398)</l>
+<l>gen_cross_contour_xld (CenterCross, CircleRow, CircleCol, 20, 0.785398)</l>
+<c></c>
+<l>RadiusDistances := []</l>
+<l>gen_empty_obj (RadiusLines)</l>
+<c></c>
+<l>for I := 0 to |Rows| - 1 by 1</l>
+<l>    distance_pp (CircleRow, CircleCol, Rows[I], Cols[I], OneDistance)</l>
+<l>    RadiusDistances := [RadiusDistances, OneDistance]</l>
+<c></c>
+<l>    gen_contour_polygon_xld (OneRadiusLine, [CircleRow, Rows[I]], [CircleCol, Cols[I]])</l>
+<l>    concat_obj (RadiusLines, OneRadiusLine, RadiusLines)</l>
+<l>endfor</l>
+<c></c>
+<l>dev_display (ImageGray)</l>
+<c></c>
+<l>dev_set_color ('green')</l>
+<l>dev_display (CaliperContours)</l>
+<c></c>
+<l>dev_set_color ('cyan')</l>
+<l>dev_display (PointCross)</l>
+<c></c>
+<l>dev_set_color ('yellow')</l>
+<l>dev_display (CenterCross)</l>
+<c></c>
+<l>dev_set_color ('red')</l>
+<l>dev_display (FittedArc)</l>
+<l>dev_display (RadiusLines)</l>
+<c></c>
+<l>dev_disp_text ('圆弧半径: ' + CircleRadius$'.2f' + ' px', \
+               'window', 20, 20, 'red', [], [])</l>
+<c></c>
+<l>dev_disp_text ('圆心Row: ' + CircleRow$'.2f' + '  圆心Col: ' + CircleCol$'.2f', \
+               'window', 40, 20, 'red', [], [])</l>
+<c></c>
+<l>for I := 0 to |RadiusDistances| - 1 by 1</l>
+<l>    dev_disp_text ('点' + (I + 1)$'d' + ' 到圆心距离: ' + RadiusDistances[I]$'.2f' + ' px', \
+                   'window', 70 + I * 20, 20, 'red', [], [])</l>
+<l>endfor</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>*阈值分割</c>
+<l>read_image (Label01, 'D:/ProgramData/GitHub/Halcon/0404/label_01.png')</l>
+<c></c>
+<l>threshold (Label01, Region, [0,30], [30,40])</l>
+<c></c>
+<l>read_image (alpha1, 'D:/ProgramData/GitHub/Halcon/0404/alpha1.png')</l>
+<c></c>
+<l>binary_threshold (alpha1, Region1, 'max_separability', 'dark', UsedThreshold)</l>
+<c></c>
+<l>scale_image (alpha1, ImageScaled, 1, 50)</l>
+<c></c>
+<l>binary_threshold (ImageScaled, Region2, 'max_separability', 'dark', UsedThreshold)</l>
+<c></c>
+<l>dev_display (Label01)</l>
+<l>mean_image (Label01, ImageMean, 9, 9)</l>
+<l>dyn_threshold (Label01, ImageMean, RegionDynThresh, 60, 'dark')</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

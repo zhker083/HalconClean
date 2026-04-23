@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_close_window ()</l>
+<l>read_image (Image, 'rings_and_nuts')</l>
+<c></c>
+<l>get_image_size (Image, Width, Height)</l>
+<l>dev_open_window (0, 0, Width, Height, 'black', WindowHandle)</l>
+<l>dev_display (Image)</l>
+<c></c>
+<c>* --------------------------------------------------</c>
+<c>* 1. 只取上半部分作为搜索区域（避免识别到底下六角螺母）</c>
+<c>* --------------------------------------------------</c>
+<l>gen_rectangle1 (ROI_Top, 0, 0, Height/2, Width)</l>
+<l>reduce_domain (Image, ROI_Top, ImageTop)</l>
+<c></c>
+<c>* --------------------------------------------------</c>
+<c>* 2. 先粗分割，提取上面齿轮区域</c>
+<c>*    黑色目标，白色背景，所以用较低灰度阈值</c>
+<c>* --------------------------------------------------</c>
+<l>threshold (ImageTop, RegionDark, 0, 100)</l>
+<l>connection (RegionDark, ConnectedRegions)</l>
+<c></c>
+<c>* 按面积筛掉小噪声</c>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 1000, 999999)</l>
+<c></c>
+<c>* 可选：显示一下候选区域</c>
+<l>dev_set_color ('green')</l>
+<l>dev_display (SelectedRegions)</l>
+<c></c>
+<c>* --------------------------------------------------</c>
+<c>* 3. 选一个齿轮作为模板</c>
+<c>*    这里为了简单，取中间那个齿轮更稳</c>
+<c>* --------------------------------------------------</c>
+<l>sort_region (SelectedRegions, SortedRegions, 'character', 'true', 'column')</l>
+<c></c>
+<c>* 上排正常应有3个区域，取第2个作为模板</c>
+<l>select_obj (SortedRegions, GearTemplateRegion, 2)</l>
+<c></c>
+<c>* 做个稍微放大的外接矩形，避免模板切得太紧</c>
+<l>smallest_rectangle1 (GearTemplateRegion, Row1, Col1, Row2, Col2)</l>
+<l>Margin := 10</l>
+<l>Row1 := max([0, Row1 - Margin])</l>
+<l>Col1 := max([0, Col1 - Margin])</l>
+<l>Row2 := min([Height - 1, Row2 + Margin])</l>
+<l>Col2 := min([Width - 1, Col2 + Margin])</l>
+<c></c>
+<l>crop_rectangle1 (Image, TemplateImage, Row1, Col1, Row2, Col2)</l>
+<c></c>
+<l>dev_set_color ('blue')</l>
+<l>dev_display (GearTemplateRegion)</l>
+<c></c>
+<c>* --------------------------------------------------</c>
+<c>* 4. 创建“缩放形状模板”</c>
+<c>*    允许一定角度和尺度变化</c>
+<c>* --------------------------------------------------</c>
+<l>create_scaled_shape_model (TemplateImage,\
+                           'auto', rad(0), rad(360),\
+                           'auto', 0.9, 1.1,\
+                           'auto', 'auto',\
+                           'use_polarity',\
+                           'auto', 'auto',\
+                           ModelID)</l>
+<c></c>
+<c>* --------------------------------------------------</c>
+<c>* 5. 在上半部分找3个齿轮</c>
+<c>* --------------------------------------------------</c>
+<l>find_scaled_shape_model (ImageTop, ModelID, \
+                         rad(0), rad(360), \
+                         0.6, 1.4, \
+                         0.5, \
+                         3, \
+                         0.5, \
+                         'least_squares', \
+                         0, \
+                         0.8, \
+                         Row, Column, Angle, Scale, Score)</l>
+<c></c>
+<c>* --------------------------------------------------</c>
+<c>* 6. 显示结果</c>
+<c>* --------------------------------------------------</c>
+<c>* --------------------------------------------------</c>
+<c>* 6. 只显示中心点，不显示轮廓和文字</c>
+<c>* --------------------------------------------------</c>
+<l>dev_set_color ('red')</l>
+<c></c>
+<l>for Index := 0 to |Row| - 1 by 1</l>
+<l>    gen_cross_contour_xld (Cross, Row[Index], Column[Index], 20, 0.785398)</l>
+<l>    dev_display (Cross)</l>
+<l>endfor</l>
+<c></c>
+<l>clear_shape_model (ModelID)</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

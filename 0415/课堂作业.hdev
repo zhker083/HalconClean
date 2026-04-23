@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 0415课堂作业：使用 Metrology 直线测量工具测量一条边</c>
+<c></c>
+<c>* 1. 读取图像</c>
+<c>* Image：图像变量</c>
+<l>read_image (Image,'D:/HTH/课堂资料/Image/镜筒/16_23_42_048.png')</l>
+<c></c>
+<c>* 显示图像，方便后面手动画线</c>
+<l>dev_display (Image)</l>
+<c></c>
+<c>* 获取当前图像窗口句柄</c>
+<c>* WindowHandle：当前显示窗口</c>
+<l>dev_get_window (WindowHandle)</l>
+<c></c>
+<c></c>
+<c>* 2. 手动画一条近似直线</c>
+<c>* draw_line：鼠标交互画线</c>
+<c>* Row1, Column1：线段起点坐标</c>
+<c>* Row2, Column2：线段终点坐标</c>
+<c>* 注意：HALCON 中坐标顺序是 Row 行、Column 列</c>
+<l>draw_line (WindowHandle, Row1, Column1, Row2, Column2)</l>
+<c></c>
+<c></c>
+<c>* 3. 创建测量模型</c>
+<c>* MetrologyHandle：测量模型句柄</c>
+<c>* 可以理解为一个测量容器</c>
+<l>create_metrology_model (MetrologyHandle)</l>
+<c></c>
+<c></c>
+<c>* 4. 添加“直线 line”测量对象</c>
+<c>* add_metrology_object_line_measure：</c>
+<c>* 在刚才手动画的直线附近放置一排小卡尺</c>
+<c>*</c>
+<c>* 参数说明：</c>
+<c>* MetrologyHandle：测量模型</c>
+<c>* Row1, Column1：近似直线起点</c>
+<c>* Row2, Column2：近似直线终点</c>
+<c>* 20：measure_length1，小卡尺半高，垂直于线方向的搜索范围</c>
+<c>* 5：measure_length2，小卡尺半宽，沿线方向的宽度</c>
+<c>* 1：measure_sigma，平滑系数</c>
+<c>* 30：measure_threshold，边缘阈值</c>
+<c>* []：参数名，这里不用</c>
+<c>* []：参数值，这里不用</c>
+<c>* Index：当前测量对象的索引编号</c>
+<l>add_metrology_object_line_measure (MetrologyHandle, Row1, Column1, Row2, Column2,\
+                                   20, 5, 1, 30, [], [], Index)</l>
+<c></c>
+<c></c>
+<c>* 5. 设置小卡尺参数</c>
+<c>* 注意：</c>
+<c>* 这里设置的参数会覆盖上面添加测量对象时的默认参数</c>
+<c></c>
+<c></c>
+<c>* 5.1 设置小卡尺半高</c>
+<c>* measure_length1：</c>
+<c>* 垂直于直线方向的搜索半长度</c>
+<c>* 值越大，搜索范围越宽</c>
+<c>* 值越小，要求手动画线越准确</c>
+<l>set_metrology_object_param (MetrologyHandle, Index, 'measure_length1', 20)</l>
+<c></c>
+<c></c>
+<c>* 5.2 设置小卡尺半宽</c>
+<c>* measure_length2：</c>
+<c>* 沿直线方向的半宽度</c>
+<c>* 值越大，抗噪能力稍强</c>
+<c>* 值越小，定位更细，但容易受噪声影响</c>
+<l>set_metrology_object_param (MetrologyHandle, Index, 'measure_length2', 5)</l>
+<c></c>
+<c></c>
+<c>* 5.3 设置边缘灰度阈值</c>
+<c>* measure_threshold：</c>
+<c>* 边缘灰度变化强度超过该值，才认为是有效边缘</c>
+<c>* 值越大，边缘要求越明显</c>
+<c>* 值越小，弱边缘也容易被找到，但噪声也可能被识别</c>
+<l>set_metrology_object_param (MetrologyHandle, Index, 'measure_threshold', 10)</l>
+<c></c>
+<c></c>
+<c>* 5.4 设置卡尺间隔</c>
+<c>* measure_distance：</c>
+<c>* 沿着直线方向，每隔多少像素放置一个小卡尺</c>
+<c>* 值越小，卡尺越密，边缘点越多，速度稍慢</c>
+<c>* 值越大，卡尺越稀，速度快，但点少</c>
+<l>set_metrology_object_param (MetrologyHandle, Index, 'measure_distance', 5)</l>
+<c></c>
+<c></c>
+<c>* 5.5 设置边缘过渡方式</c>
+<c>* measure_transition：</c>
+<c>* 'positive'：找黑到白的边缘，也就是灰度从小到大</c>
+<c>* 'negative'：找白到黑的边缘，也就是灰度从大到小</c>
+<c>* 'uniform'：正负边缘都找</c>
+<c>*</c>
+<c>* 当前使用 negative，适合从白色区域过渡到黑色区域的边缘</c>
+<c>* 如果测量点跑偏，可以改成 positive 或 uniform</c>
+<l>* set_metrology_object_param (MetrologyHandle, Index, 'measure_transition', 'positive')</l>
+<l>set_metrology_object_param (MetrologyHandle, Index, 'measure_transition', 'positive')</l>
+<c></c>
+<c></c>
+<c>* 5.6 设置边缘点选择方式</c>
+<c>* measure_select：</c>
+<c>* 当一个小卡尺中找到多个边缘点时，选择哪个点</c>
+<c>*</c>
+<c>* 'all'：所有点都保留</c>
+<c>* 'first'：选择第一个边缘点</c>
+<c>* 'last'：选择最后一个边缘点</c>
+<c>* 'strongest'：选择灰度变化最强的边缘点</c>
+<c>*</c>
+<c>* 当前使用 first，表示选择卡尺扫描方向上遇到的第一个边缘</c>
+<l>set_metrology_object_param (MetrologyHandle, Index, 'measure_select', 'first')</l>
+<l>* set_metrology_object_param (MetrologyHandle, Index, 'measure_select', 'last')</l>
+<c></c>
+<c></c>
+<c>* 5.7 设置最小得分</c>
+<c>* min_score：</c>
+<c>* 测量结果最低得分</c>
+<c>* 0.3 表示只要有大约 30% 的卡尺找到有效点，也允许测量成功</c>
+<c>* 值越高，结果越严格</c>
+<l>set_metrology_object_param (MetrologyHandle, Index, 'min_score', 0.3)</l>
+<c></c>
+<c></c>
+<c>* 6. 应用测量模型</c>
+<c>* apply_metrology_model：</c>
+<c>* 真正开始测量</c>
+<c>* 它会在图像中按照小卡尺找边缘点，并拟合直线</c>
+<c>*</c>
+<c>* 注意：</c>
+<c>* 图像尺寸不能和创建模型时使用的图像尺寸不一致</c>
+<l>apply_metrology_model (Image, MetrologyHandle)</l>
+<c></c>
+<c></c>
+<c>* 7. 获取小卡尺和边缘点结果</c>
+<c>* get_metrology_object_measures：</c>
+<c>* 获取测量过程中生成的小卡尺轮廓，以及检测到的边缘点</c>
+<c>*</c>
+<c>* Contours：小卡尺轮廓</c>
+<c>* Row, Column：检测到的边缘点坐标</c>
+<l>get_metrology_object_measures (Contours, MetrologyHandle, Index, 'all', Row, Column)</l>
+<c></c>
+<c></c>
+<c>* 将边缘点生成十字，方便观察</c>
+<c>* Cross：边缘点十字轮廓</c>
+<c>* 3：十字大小</c>
+<c>* 0.785398：十字角度，约等于 45 度</c>
+<l>gen_cross_contour_xld (Cross, Row, Column, 3, 0.785398)</l>
+<c></c>
+<c></c>
+<c>* 8. 获取拟合直线结果</c>
+<c>* get_metrology_object_result：</c>
+<c>* 获取直线测量对象的最终参数</c>
+<c>*</c>
+<c>* Parameter：输出的直线参数</c>
+<c>* 对 line 来说，常用格式是：</c>
+<c>* Parameter[0]：拟合直线起点 Row</c>
+<c>* Parameter[1]：拟合直线起点 Column</c>
+<c>* Parameter[2]：拟合直线终点 Row</c>
+<c>* Parameter[3]：拟合直线终点 Column</c>
+<l>get_metrology_object_result (MetrologyHandle, Index, 'all', \
+                             'result_type', 'all_param', Parameter)</l>
+<c></c>
+<c></c>
+<c>* 在拟合直线的两个端点生成十字</c>
+<c>* 第一个数组：[Parameter[0], Parameter[2]] 表示两个点的 Row</c>
+<c>* 第二个数组：[Parameter[1], Parameter[3]] 表示两个点的 Column</c>
+<l>gen_cross_contour_xld (Cross1, [Parameter[0],Parameter[2]], \
+                       [Parameter[1],Parameter[3]], 6, 0.785398)</l>
+<c></c>
+<c></c>
+<c>* 9. 获取拟合直线轮廓</c>
+<c>* Contour：拟合出来的直线轮廓</c>
+<c>* 1.5：轮廓显示精度</c>
+<l>get_metrology_object_result_contour (Contour, MetrologyHandle, Index, 'all', 1.5)</l>
+<c></c>
+<c></c>
+<c>* 10. 可选：计算边缘点到拟合直线的距离</c>
+<c>* distance_pl：</c>
+<c>* point-line distance，点到线距离</c>
+<c>*</c>
+<c>* Row, Column：边缘点坐标</c>
+<c>* Parameter[0], Parameter[1]：拟合直线起点</c>
+<c>* Parameter[2], Parameter[3]：拟合直线终点</c>
+<c>* Distance：每个边缘点到拟合直线的距离</c>
+<c>*</c>
+<c>* 这个距离可以用来判断拟合质量：</c>
+<c>* Max 越小，说明边缘点越贴近直线</c>
+<c>* Max 越大，说明边缘不直，或者有异常点</c>
+<c>*</c>
+<c>* distance_pl (Row, Column, Parameter[0], Parameter[1], \
+*              Parameter[2], Parameter[3], Distance)</c>
+<c>*</c>
+<l>* tuple_max (Distance, Max)</l>
+<l>* tuple_min (Distance, Min)</l>
+<c></c>
+<c></c>
+<c>* 11. 显示测量结果</c>
+<l>dev_display (Image)</l>
+<c></c>
+<c>* 显示小卡尺</c>
+<l>dev_set_color ('green')</l>
+<l>dev_display (Contours)</l>
+<c></c>
+<c>* 显示边缘点</c>
+<l>dev_set_color ('cyan')</l>
+<l>dev_display (Cross)</l>
+<c></c>
+<c>* 显示拟合直线</c>
+<l>dev_set_color ('red')</l>
+<l>dev_display (Contour)</l>
+<c></c>
+<c>* 显示拟合直线两个端点</c>
+<l>dev_set_color ('yellow')</l>
+<l>dev_display (Cross1)</l>
+<c></c>
+<c></c>
+<c>* 12. 清理测量模型</c>
+<c>* 释放 MetrologyHandle 占用的资源</c>
+<l>clear_metrology_model (MetrologyHandle)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

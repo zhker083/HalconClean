@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 读取图像并打开窗口</c>
+<l>read_image (Image, 'D:/HTH/课堂资料/Image/png/1.png')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>dev_open_window (0, 0, Width, Height, 'black', WindowHandle)</l>
+<l>dev_display (Image)</l>
+<c></c>
+<c>* 手动画一个大概的圆</c>
+<l>draw_circle (WindowHandle, Row1, Col1, Radius)</l>
+<c></c>
+<c>* 创建测量模型</c>
+<l>create_metrology_model (MetrologyHandle)</l>
+<l>set_metrology_model_image_size (MetrologyHandle, Width, Height)</l>
+<c></c>
+<c>* 添加圆测量工具</c>
+<l>add_metrology_object_circle_measure (MetrologyHandle, Row1, Col1, Radius, \
+                                     20, 2, 3, 3, [], [], Index)</l>
+<c></c>
+<c>* 设置测量参数</c>
+<l>set_metrology_object_param (MetrologyHandle, Index, 'num_instances', 1)</l>
+<l>set_metrology_object_param (MetrologyHandle, Index, 'measure_distance', 5)</l>
+<l>set_metrology_object_param (MetrologyHandle, Index, 'measure_transition', 'all')</l>
+<l>set_metrology_object_param (MetrologyHandle, Index, 'measure_select', 'all')</l>
+<l>set_metrology_object_param (MetrologyHandle, Index, 'min_score', 0.3)</l>
+<c></c>
+<c>* 执行圆测量</c>
+<l>apply_metrology_model (Image, MetrologyHandle)</l>
+<c></c>
+<c>* 获取卡尺、测量点</c>
+<l>get_metrology_object_measures (MeasureContours, MetrologyHandle, Index, 'all', RowPoints, ColPoints)</l>
+<c></c>
+<c>* 获取拟合圆参数和轮廓</c>
+<l>get_metrology_object_result (MetrologyHandle, Index, 'all', 'result_type', 'all_param', CircleParam)</l>
+<l>get_metrology_object_result_contour (ResultContour, MetrologyHandle, Index, 'all', 1.5)</l>
+<c></c>
+<c>* 生成测量点十字和圆心十字</c>
+<l>gen_cross_contour_xld (PointCross, RowPoints, ColPoints, 6, 0.785398)</l>
+<l>gen_cross_contour_xld (CenterCross, CircleParam[0], CircleParam[1], 20, 0.785398)</l>
+<c></c>
+<c>* 计算半径和直径</c>
+<l>CircleRadius := CircleParam[2]</l>
+<l>CircleDiameter := CircleRadius * 2</l>
+<c></c>
+<c>* 计算测量点到拟合圆轮廓的距离</c>
+<l>distance_pc (ResultContour, RowPoints, ColPoints, DistanceMin, DistanceMax)</l>
+<l>tuple_max (DistanceMin, MaxDistance)</l>
+<l>tuple_min (DistanceMin, MinDistance)</l>
+<c></c>
+<c>* 显示结果</c>
+<l>dev_display (Image)</l>
+<c></c>
+<l>dev_set_color ('green')</l>
+<l>dev_display (MeasureContours)</l>
+<c></c>
+<l>dev_set_color ('cyan')</l>
+<l>dev_display (PointCross)</l>
+<c></c>
+<l>dev_set_color ('red')</l>
+<l>dev_display (ResultContour)</l>
+<c></c>
+<l>dev_set_color ('yellow')</l>
+<l>dev_display (CenterCross)</l>
+<c></c>
+<c>* 清理模型</c>
+<l>clear_metrology_model (MetrologyHandle)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

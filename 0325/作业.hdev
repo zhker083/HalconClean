@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* =========================================================</c>
+<c>* 中国车牌识别</c>
+<c>* 功能：</c>
+<c>* 1. 手动画车牌区域</c>
+<c>* 2. 闭运算修复汉字断裂（如“桂”被分成多个区域）</c>
+<c>* 3. OCR识别车牌</c>
+<c>* 4. 因中国车牌无字母 I，识别后直接将 I 替换为 1</c>
+<c>* =========================================================</c>
+<c></c>
+<c>* ===== 读取图像并预处理 =====</c>
+<l>read_image (Image, 'D:/ProgramData/GitHub/Halcon/0325/Image.png')</l>
+<l>rgb1_to_gray (Image, GrayImage)</l>
+<l>invert_image (GrayImage, GrayImage)</l>
+<c></c>
+<c>* ===== 手动画车牌区域并裁剪 =====</c>
+<l>dev_get_window (WH)</l>
+<l>draw_rectangle1 (WH, Row1, Column1, Row2, Column2)</l>
+<l>gen_rectangle1 (Rectangle, Row1, Column1, Row2, Column2)</l>
+<l>reduce_domain (GrayImage, Rectangle, ImageReduced)</l>
+<c></c>
+<c>* ===== 阈值分割 =====</c>
+<l>threshold (ImageReduced, Region, 0, 140)</l>
+<c></c>
+<c>* ===== 闭运算：解决汉字断裂，如“桂”被分成多个区域 =====</c>
+<l>closing_circle (Region, RegionClosing, 2.5)</l>
+<c></c>
+<c>* ===== 连通域分析 =====</c>
+<l>connection (RegionClosing, ConnectedRegions)</l>
+<c></c>
+<c>* ===== 面积筛选，去掉小噪声 =====</c>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 300, 99999)</l>
+<c></c>
+<c>* ===== 按字符顺序排序 =====</c>
+<l>sort_region (SelectedRegions, SortedRegions, 'character', 'true', 'row')</l>
+<c></c>
+<c>* ===== 显示分割结果（调试时可保留） =====</c>
+<l>dev_display (ImageReduced)</l>
+<l>dev_set_draw ('margin')</l>
+<l>dev_set_color ('green')</l>
+<l>dev_display (SortedRegions)</l>
+<c></c>
+<c>* ===== 加载OCR模型 =====</c>
+<l>read_ocr_class_mlp ('gui.omc', OCRHandleChinese)</l>
+<l>read_ocr_class_mlp ('Industrial_0-9A-Z_NoRej.omc', OCRHandleAN)</l>
+<c></c>
+<c>* ===== 统计字符数量 =====</c>
+<l>count_obj (SortedRegions, Number)</l>
+<c></c>
+<c>* ===== 初始化 =====</c>
+<l>gen_empty_obj (RestChars)</l>
+<l>PlateString := ''</l>
+<c></c>
+<c>* ===== 开始识别 =====</c>
+<l>if (Number &gt;= 1)</l>
+<c></c>
+<c>    * ---------- 第1个字符：汉字 ----------</c>
+<l>    select_obj (SortedRegions, FirstChar, 1)</l>
+<l>    do_ocr_single_class_mlp (FirstChar, ImageReduced, OCRHandleChinese, 1, ChineseClass, ChineseConf)</l>
+<c></c>
+<c>    * 汉字先加入结果</c>
+<l>    PlateString := ChineseClass</l>
+<c></c>
+<c>    * ---------- 第2个到最后：字母数字 ----------</c>
+<l>    if (Number &gt; 1)</l>
+<c></c>
+<l>        for Index := 2 to Number by 1</l>
+<l>            select_obj (SortedRegions, OneChar, Index)</l>
+<l>            concat_obj (RestChars, OneChar, RestChars)</l>
+<l>        endfor</l>
+<c></c>
+<l>        do_ocr_multi_class_mlp (RestChars, ImageReduced, OCRHandleAN, RestClass, RestConf)</l>
+<c></c>
+<c>        * ===== 中国车牌没有字母 I，直接替换成数字 1 =====</c>
+<l>        for i := 0 to |RestClass| - 1 by 1</l>
+<l>            if (RestClass[i] == 'I')</l>
+<l>                RestClass[i] := '1'</l>
+<l>            endif</l>
+<l>            PlateString := PlateString + RestClass[i]</l>
+<l>        endfor</l>
+<c></c>
+<l>    endif</l>
+<l>endif</l>
+<c></c>
+<c>* ===== 显示最终识别结果 =====</c>
+<l>dev_set_color ('yellow')</l>
+<l>dev_disp_text ('车牌号：' + PlateString, 'window', 20, 20, 'yellow', 'box', 'false')</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

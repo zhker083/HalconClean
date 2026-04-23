@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* ================================</c>
+<c>* 圆弧边缘对测量</c>
+<c>* ================================</c>
+<c></c>
+<l>read_image (RingsAndNuts, 'D:/ProgramData/GitHub/Halcon/0408/rings_and_nuts.png')</l>
+<l>dev_display (RingsAndNuts)</l>
+<l>dev_set_draw ('margin')</l>
+<l>dev_set_line_width (2)</l>
+<l>dev_get_window (WindowHandle)</l>
+<c></c>
+<c>* --------------------------------</c>
+<c>* 测量参数设置</c>
+<c>* --------------------------------</c>
+<l>AmplitudeThreshold := 40</l>
+<l>RoiWidthLen2 := 5</l>
+<l>set_system ('int_zooming', 'true')</l>
+<c></c>
+<c>* --------------------------------</c>
+<c>* 定义圆弧测量区域参数</c>
+<c>* --------------------------------</c>
+<l>ArcRow_Measure_01_0 := 119.03</l>
+<l>ArcColumn_Measure_01_0 := 131.162</l>
+<l>ArcRadius_Measure_01_0 := 48.3263</l>
+<l>ArcAngleStart_Measure_01_0 := 0.785398</l>
+<l>ArcAngleExtent_Measure_01_0 := 6.28319</l>
+<c></c>
+<c>* --------------------------------</c>
+<c>* 创建圆弧测量句柄</c>
+<c>* --------------------------------</c>
+<l>gen_measure_arc (ArcRow_Measure_01_0, ArcColumn_Measure_01_0, ArcRadius_Measure_01_0, \
+                 ArcAngleStart_Measure_01_0, ArcAngleExtent_Measure_01_0, \
+                 max2(1, min2(RoiWidthLen2, ArcRadius_Measure_01_0)), \
+                 640, 480, 'nearest_neighbor', MsrHandle_Measure_01_0)</l>
+<c></c>
+<c>* --------------------------------</c>
+<c>* 可视化：显示测量圆弧中心线</c>
+<c>* --------------------------------</c>
+<l>gen_circle_contour_xld (ArcContour, ArcRow_Measure_01_0, ArcColumn_Measure_01_0, \
+                        ArcRadius_Measure_01_0, \
+                        ArcAngleStart_Measure_01_0, \
+                        ArcAngleStart_Measure_01_0 + ArcAngleExtent_Measure_01_0, \
+                        'positive', 1.0)</l>
+<l>dev_set_color ('yellow')</l>
+<l>dev_display (ArcContour)</l>
+<c></c>
+<c>* 可视化：显示测量带内外边界</c>
+<l>InnerRadius := ArcRadius_Measure_01_0 - RoiWidthLen2</l>
+<l>OuterRadius := ArcRadius_Measure_01_0 + RoiWidthLen2</l>
+<c></c>
+<l>if (InnerRadius &gt; 0)</l>
+<l>    gen_circle_contour_xld (ArcInner, ArcRow_Measure_01_0, ArcColumn_Measure_01_0, \
+                            InnerRadius, \
+                            ArcAngleStart_Measure_01_0, \
+                            ArcAngleStart_Measure_01_0 + ArcAngleExtent_Measure_01_0, \
+                            'positive', 1.0)</l>
+<l>    dev_set_color ('cyan')</l>
+<l>    dev_display (ArcInner)</l>
+<l>endif</l>
+<c></c>
+<l>gen_circle_contour_xld (ArcOuter, ArcRow_Measure_01_0, ArcColumn_Measure_01_0, \
+                        OuterRadius, \
+                        ArcAngleStart_Measure_01_0, \
+                        ArcAngleStart_Measure_01_0 + ArcAngleExtent_Measure_01_0, \
+                        'positive', 1.0)</l>
+<l>dev_set_color ('cyan')</l>
+<l>dev_display (ArcOuter)</l>
+<c></c>
+<c>* --------------------------------</c>
+<c>* 执行边缘对测量</c>
+<c>* --------------------------------</c>
+<l>copy_obj (RingsAndNuts, Image, 1, 1)</l>
+<c></c>
+<l>measure_pairs (Image, \
+               MsrHandle_Measure_01_0, \
+               1, AmplitudeThreshold, 'all', 'all', \
+               Row1_Measure_01_0, Column1_Measure_01_0, Amplitude1_Measure_01_0, \
+               Row2_Measure_01_0, Column2_Measure_01_0, Amplitude2_Measure_01_0, \
+               Width_Measure_01_0, Distance_Measure_01_0)</l>
+<c></c>
+<c>* --------------------------------</c>
+<c>* 判断是否测到边缘对</c>
+<c>* --------------------------------</c>
+<l>if (|Row1_Measure_01_0| &gt; 0)</l>
+<c></c>
+<c>    * 显示全部第一组边缘点</c>
+<l>    dev_set_color ('green')</l>
+<l>    gen_cross_contour_xld (Cross1, Row1_Measure_01_0, Column1_Measure_01_0, 6, 0.785398)</l>
+<l>    dev_display (Cross1)</l>
+<c></c>
+<c>    * 显示全部第二组边缘点</c>
+<l>    dev_set_color ('red')</l>
+<l>    gen_cross_contour_xld (Cross2, Row2_Measure_01_0, Column2_Measure_01_0, 6, 0.785398)</l>
+<l>    dev_display (Cross2)</l>
+<c></c>
+<c>    * 把每一对边缘点连成线</c>
+<l>    for i := 0 to |Row1_Measure_01_0| - 1 by 1</l>
+<l>        gen_contour_polygon_xld (Line, \
+                                 [Row1_Measure_01_0[i], Row2_Measure_01_0[i]], \
+                                 [Column1_Measure_01_0[i], Column2_Measure_01_0[i]])</l>
+<l>        dev_set_color ('blue')</l>
+<l>        dev_display (Line)</l>
+<l>    endfor</l>
+<c></c>
+<c>    * 在每对边缘中点位置显示宽度</c>
+<l>    for i := 0 to |Width_Measure_01_0| - 1 by 1</l>
+<l>        MidRow := (Row1_Measure_01_0[i] + Row2_Measure_01_0[i]) / 2</l>
+<l>        MidCol := (Column1_Measure_01_0[i] + Column2_Measure_01_0[i]) / 2</l>
+<l>        set_tposition (WindowHandle, MidRow, MidCol)</l>
+<l>        write_string (WindowHandle, Width_Measure_01_0[i]$'.2f')</l>
+<l>    endfor</l>
+<c></c>
+<c>    * 左上角显示测到多少对</c>
+<l>    set_tposition (WindowHandle, 20, 20)</l>
+<l>    write_string (WindowHandle, 'Pair Num: ' + |Width_Measure_01_0|)</l>
+<c></c>
+<l>else</l>
+<l>    set_tposition (WindowHandle, 20, 20)</l>
+<l>    write_string (WindowHandle, 'No edge pairs found')</l>
+<l>endif</l>
+<c></c>
+<c>* --------------------------------</c>
+<c>* 释放测量句柄</c>
+<c>* --------------------------------</c>
+<l>close_measure (MsrHandle_Measure_01_0)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

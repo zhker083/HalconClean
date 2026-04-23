@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>*条码识别</c>
+<c>*1）一维码</c>
+<c>*2）二维码</c>
+<c></c>
+<c>*视觉项目里没有单纯的检测 一维码 二维码</c>
+<c></c>
+<c>*1采集图像-&gt;图像预处理 -&gt;定位 -&gt;检测识别、测量...</c>
+<c>*一维码识别</c>
+<c>*====================================================</c>
+<c>*   1、图像预处理  //得到清晰（高对比度）稳定的图像  </c>
+<c>*====================================================</c>
+<l>dev_update_off ()</l>
+<c></c>
+<l>dev_close_window ()</l>
+<c></c>
+<l>read_image (Code39, 'D:/ProgramData/GitHub/Halcon/0322/barcode/CODE39.png')</l>
+<c></c>
+<l>rgb1_to_gray (Code39, GrayImage)</l>
+<c></c>
+<l>get_image_size (GrayImage, Width, Height)</l>
+<c></c>
+<l>dev_open_window (0, 0, Width, Height, 'black', WH)</l>
+<c></c>
+<l>dev_display (GrayImage)</l>
+<c></c>
+<l>dev_update_on ()</l>
+<c></c>
+<l>draw_rectangle1 (WH, Row1, Column1, Row2, Column2)</l>
+<c></c>
+<l>gen_rectangle1 (Rectangle, Row1, Column1, Row2, Column2)</l>
+<c></c>
+<l>reduce_domain (GrayImage, Rectangle, ImageReduced)</l>
+<c></c>
+<l>create_bar_code_model ([], [], BarCodeHandle)</l>
+<c>*后面设置条形码的模式</c>
+<l>set_bar_code_param (BarCodeHandle, 'check_char', 'absent')</l>
+<l>set_bar_code_param (BarCodeHandle, 'element_size_min', 2)</l>
+<l>set_bar_code_param (BarCodeHandle, 'element_size_max', 8)</l>
+<l>set_bar_code_param (BarCodeHandle, 'num_scanlines', 5)</l>
+<l>set_bar_code_param (BarCodeHandle, 'quiet_zone', 'true')</l>
+<c></c>
+<l>find_bar_code (ImageReduced, SymbolRegions, BarCodeHandle, 'Code 39', DecodedDataStrings)</l>
+<c></c>
+<l>get_bar_code_result (BarCodeHandle, 0, 'decoded_types', BarCodeResults)</l>
+<c></c>
+<l>clear_bar_code_model (BarCodeHandle)</l>
+<c></c>
+<l>dev_disp_text (BarCodeResults, 'image', Row1, Column1, 'black', [], [])</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

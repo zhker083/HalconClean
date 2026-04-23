@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>*0404作业1</c>
+<c></c>
+<l>read_image (Image, 'D:/ProgramData/GitHub/Halcon/0404/划痕.png')</l>
+<c></c>
+<c></c>
+<c></c>
+<l>dev_display (Image)</l>
+<c></c>
+<c>* 1. 先做灰度增强，让暗划痕和背景拉开一点</c>
+<l>scale_image (Image, ImageScaled, 1, 50)</l>
+<c></c>
+<c>* 2. 均值滤波，得到局部背景图</c>
+<c>* 窗口可以适当大一点，这样更像“背景”</c>
+<l>mean_image (ImageScaled, ImageMean, 21, 21)</l>
+<c></c>
+<c>* 3. 动态阈值</c>
+<c>* dark 表示提取比局部背景更暗的区域</c>
+<c>* 偏移值要根据图像调，先从 8~20 试</c>
+<l>dyn_threshold (ImageScaled, ImageMean, RegionDyn, 8, 'dark')</l>
+<c></c>
+<c>* 4. 连通域</c>
+<l>connection (RegionDyn, ConnectedRegions)</l>
+<c></c>
+<c></c>
+<c>* 5. 按形状筛选，保留细长划痕</c>
+<c>* area 不要太小，否则噪声很多</c>
+<l>select_shape (ConnectedRegions, SelectedRegions,\
+              ['area','anisometry'], 'and', [200,3], [99999,99999])</l>
+<c></c>
+<l>dev_display (Image)</l>
+<l>dev_set_color ('red')</l>
+<l>dev_display (SelectedRegions)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

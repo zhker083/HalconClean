@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* =========================================================</c>
+<c>* 常用图像预处理方法示例</c>
+<c>* 说明：</c>
+<c>* 1. 所有预处理都以同一张原图为基准</c>
+<c>* 2. 每一种方法前都先显示原图，再显示处理结果</c>
+<c>* 3. 适合作为课堂笔记/作业模板</c>
+<c>* =========================================================</c>
+<c></c>
+<l>dev_update_off ()</l>
+<l>dev_close_window ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 读取原图</c>
+<c>* -----------------------------</c>
+<l>dev_open_window (0, 0, 800, 600, 'black', WindowHandle)</l>
+<l>read_image (Image, 'D:/ProgramData/GitHub/Halcon/0329/旋转.bmp')</l>
+<c></c>
+<c></c>
+<c>* =========================================================</c>
+<c>* 一、显示原图</c>
+<c>* =========================================================</c>
+<l>dev_display (Image)</l>
+<l>stop ()</l>
+<c></c>
+<c>* =========================================================</c>
+<c>* 二、几何预处理</c>
+<c>* 主要用于纠正图像方向、位置、尺寸</c>
+<c>* =========================================================</c>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 1. 上下镜像</c>
+<c>* mirror_image(Image : ImageMirrorRow : Mode)</c>
+<c>* 输入：</c>
+<c>*   Image      原图像</c>
+<c>*   'row'      按行镜像，即上下翻转</c>
+<c>* 输出：</c>
+<c>*   ImageMirrorRow  镜像后的图像</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>mirror_image (Image, ImageMirrorRow, 'row')</l>
+<l>dev_display (ImageMirrorRow)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 2. 左右镜像</c>
+<c>* 'column' 表示按列镜像，即左右翻转</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>mirror_image (Image, ImageMirrorColumn, 'column')</l>
+<l>dev_display (ImageMirrorColumn)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 3. 旋转图像</c>
+<c>* rotate_image(Image : ImageRotate : Angle, Interpolation)</c>
+<c>* 输入：</c>
+<c>*   Image         原图</c>
+<c>*   90            旋转角度，单位是度</c>
+<c>*   'constant'    超出部分用常数填充</c>
+<c>* 输出：</c>
+<c>*   ImageRotate   旋转后的图像</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>rotate_image (Image, ImageRotate, 90, 'constant')</l>
+<l>dev_display (ImageRotate)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 4. 缩放图像</c>
+<c>* zoom_image_factor(Image : ImageZoom : ScaleWidth, ScaleHeight, Interpolation)</c>
+<c>* 输入：</c>
+<c>*   0.5,0.5   宽和高缩小到原来的 0.5 倍</c>
+<c>* 输出：</c>
+<c>*   ImageZoom 缩放后的图像</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>zoom_image_factor (Image, ImageZoom, 0.5, 0.5, 'constant')</l>
+<l>dev_display (ImageZoom)</l>
+<l>stop ()</l>
+<c></c>
+<c>* =========================================================</c>
+<c>* 三、灰度变换预处理</c>
+<c>* 主要用于增强对比度、纠正亮度、突出目标</c>
+<c>* =========================================================</c>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 5. 图像反转</c>
+<c>* invert_image(Image : ImageInvert)</c>
+<c>* 作用：</c>
+<c>*   黑变白，白变黑，灰度取反</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>invert_image (Image, ImageInvert)</l>
+<l>dev_display (ImageInvert)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 6. 灰度缩放</c>
+<c>* scale_image(Image : ImageScaled : Mult, Add)</c>
+<c>* 输入：</c>
+<c>*   0.5   灰度缩小倍数</c>
+<c>*   0     偏移量</c>
+<c>* 作用：</c>
+<c>*   调整体素灰度值范围</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>scale_image (Image, ImageScaled1, 0.5, 0)</l>
+<l>dev_display (ImageScaled1)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 7. 灰度增强</c>
+<c>* emphasize(Image : ImageEmphasize : MaskWidth, MaskHeight, Factor)</c>
+<c>* 输入：</c>
+<c>*   14,14   模板大小</c>
+<c>*   5       增强系数</c>
+<c>* 作用：</c>
+<c>*   强调边缘和细节，使图像看起来更清晰</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>emphasize (Image, ImageEmphasize, 14, 14, 5)</l>
+<l>dev_display (ImageEmphasize)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 8. 光照均衡 / 亮度校正</c>
+<c>* illuminate(Image : ImageResult : Width, Height, Factor)</c>
+<c>* 作用：</c>
+<c>*   改善光照不均问题</c>
+<c>* 常用于：</c>
+<c>*   背景亮度不一致、局部发暗发亮的情况</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>illuminate (Image, ImageIlluminate, 10, 10, 5)</l>
+<l>dev_display (ImageIlluminate)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 9. 线性灰度归一化</c>
+<c>* scale_image_max(Image : ImageScaleMax)</c>
+<c>* 作用：</c>
+<c>*   自动把灰度拉伸到最大显示范围</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>scale_image_max (Image, ImageScaleMax)</l>
+<l>dev_display (ImageScaleMax)</l>
+<l>stop ()</l>
+<c></c>
+<c>* =========================================================</c>
+<c>* 四、图像滤波</c>
+<c>* 主要用于去噪、平滑、边缘保护</c>
+<c>* =========================================================</c>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 10. 均值滤波</c>
+<c>* mean_image(Image : ImageMean : MaskWidth, MaskHeight)</c>
+<c>* 输入：</c>
+<c>*   5,5   均值模板大小</c>
+<c>* 作用：</c>
+<c>*   平滑图像，减弱随机噪声</c>
+<c>* 缺点：</c>
+<c>*   会让边缘变模糊</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>mean_image (Image, ImageMean, 5, 5)</l>
+<l>dev_display (ImageMean)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 11. 高斯滤波</c>
+<c>* gauss_filter(Image : ImageGauss : Sigma)</c>
+<c>* 输入：</c>
+<c>*   3.0   高斯标准差</c>
+<c>* 作用：</c>
+<c>*   比均值滤波更自然的平滑去噪</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>gauss_filter (Image, ImageGauss, 3)</l>
+<l>dev_display (ImageGauss)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 12. 中值滤波</c>
+<c>* median_image(Image : ImageMedian : MaskType, Radius, Margin)</c>
+<c>* 输入：</c>
+<c>*   'circle'  圆形模板</c>
+<c>*   2         半径</c>
+<c>*   'mirrored' 边界处理方式</c>
+<c>* 作用：</c>
+<c>*   去除椒盐噪声效果很好</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>median_image (Image, ImageMedian, 'circle', 2, 'mirrored')</l>
+<l>dev_display (ImageMedian)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 13. 双边滤波（如版本支持）</c>
+<c>* bilateral_filter(Image : ImageBilateral : ...)</c>
+<c>* 作用：</c>
+<c>*   在平滑噪声的同时尽量保留边缘</c>
+<c>* 注意：</c>
+<c>*   某些版本/模块可能没有该算子</c>
+<c>* -----------------------------</c>
+<l>* dev_display (Image)</l>
+<c>* bilateral_filter (Image, ImageBilateral, 5, 50, 3)</c>
+<l>* dev_display (ImageBilateral)</l>
+<l>* stop ()</l>
+<c></c>
+<c>* =========================================================</c>
+<c>* 五、图像形态学预处理</c>
+<c>* 主要用于区域平滑、去小噪点、填补空洞、连接断裂</c>
+<c>* 注意：</c>
+<c>*   形态学通常针对“区域”操作，所以一般先阈值分割</c>
+<c>* =========================================================</c>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 先把图像转成区域</c>
+<c>* threshold(Image : Region : MinGray, MaxGray)</c>
+<c>* 输出：</c>
+<c>*   Region  二值区域</c>
+<c>* -----------------------------</c>
+<l>threshold (Image, Region, 100, 255)</l>
+<c></c>
+<l>dev_display (Image)</l>
+<l>dev_set_color ('green')</l>
+<l>dev_display (Region)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 14. 膨胀</c>
+<c>* dilation_circle(Region : RegionDilation : Radius)</c>
+<c>* 作用：</c>
+<c>*   扩大目标区域，连接邻近小断裂</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>dilation_circle (Region, RegionDilation, 3.5)</l>
+<l>dev_set_color ('green')</l>
+<l>dev_display (RegionDilation)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 15. 腐蚀</c>
+<c>* erosion_circle(Region : RegionErosion : Radius)</c>
+<c>* 作用：</c>
+<c>*   缩小目标区域，去掉细小毛刺</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>erosion_circle (Region, RegionErosion, 3.5)</l>
+<l>dev_set_color ('green')</l>
+<l>dev_display (RegionErosion)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 16. 开运算</c>
+<c>* opening_circle(Region : RegionOpening : Radius)</c>
+<c>* 作用：</c>
+<c>*   先腐蚀后膨胀</c>
+<c>*   去小噪点、去毛刺</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>opening_circle (Region, RegionOpening, 3.5)</l>
+<l>dev_set_color ('green')</l>
+<l>dev_display (RegionOpening)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 17. 闭运算</c>
+<c>* closing_circle(Region : RegionClosing : Radius)</c>
+<c>* 作用：</c>
+<c>*   先膨胀后腐蚀</c>
+<c>*   填小裂缝、连接近邻区域</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>closing_circle (Region, RegionClosing, 3.5)</l>
+<l>dev_set_color ('green')</l>
+<l>dev_display (RegionClosing)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 18. 填充孔洞</c>
+<c>* fill_up(Region : RegionFillUp)</c>
+<c>* 作用：</c>
+<c>*   把封闭区域内部的空洞填满</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>fill_up (Region, RegionFillUp)</l>
+<l>dev_set_color ('green')</l>
+<l>dev_display (RegionFillUp)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 19. 连通域分割</c>
+<c>* connection(Region : ConnectedRegions)</c>
+<c>* 作用：</c>
+<c>*   将粘连在一起的大区域拆分成多个独立区域对象</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>connection (Region, ConnectedRegions)</l>
+<l>dev_set_colored (12)</l>
+<l>dev_display (ConnectedRegions)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 20. 按面积筛选区域</c>
+<c>* select_shape(Regions : SelectedRegions : Features, Operation, Min, Max)</c>
+<c>* 输入：</c>
+<c>*   'area'    按面积筛选</c>
+<c>*   'and'     同时满足范围</c>
+<c>*   100,99999 面积范围</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>connection (Region, ConnectedRegions2)</l>
+<l>select_shape (ConnectedRegions2, SelectedRegions, 'area', 'and', 100, 99999)</l>
+<l>dev_set_color ('green')</l>
+<l>dev_display (SelectedRegions)</l>
+<l>stop ()</l>
+<c></c>
+<c>* =========================================================</c>
+<c>* 六、边缘与锐化预处理</c>
+<c>* 主要用于突出边界轮廓</c>
+<c>* =========================================================</c>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 21. Sobel 边缘</c>
+<c>* edges_image(Image : ImaAmp, ImaDir : Filter, Alpha, NMS, Low, High)</c>
+<c>* 这里使用：</c>
+<c>*   'sobel_fast'</c>
+<c>* 输出：</c>
+<c>*   ImageEdgeAmp  边缘幅值图</c>
+<c>*   ImageEdgeDir  边缘方向图</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>edges_image (Image, ImageEdgeAmp, ImageEdgeDir, 'sobel_fast', 1, 'nms', 20, 40)</l>
+<l>dev_display (ImageEdgeAmp)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 22. Laplace 锐化</c>
+<c>* laplace(Image : ImageLaplace : MaskSize, FilterType)</c>
+<c>* 作用：</c>
+<c>*   增强灰度变化剧烈的位置</c>
+<c>* -----------------------------</c>
+<l>dev_display (Image)</l>
+<l>laplace (ImageEdgeAmp, ImageLaplace, 'absolute', 3, 'n_4')</l>
+<l>dev_display (ImageLaplace)</l>
+<l>stop ()</l>
+<c></c>
+<c>* =========================================================</c>
+<c>* 七、组合预处理示例</c>
+<c>* 实际项目中经常多个算子连用</c>
+<c>* =========================================================</c>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 示例1：镜像 + 旋转 + 强调 + 光照校正 + 反转 + 灰度缩放</c>
+<c>* 这就是你原来那段代码的完整注释版</c>
+<c>* -----------------------------</c>
+<l>mirror_image (Image, Image1, 'row')</l>
+<l>mirror_image (Image1, Image2, 'column')</l>
+<l>rotate_image (Image2, Image3, 90, 'constant')</l>
+<l>emphasize (Image3, ImageEmphasize2, 14, 14, 5)</l>
+<l>illuminate (ImageEmphasize2, ImageIlluminate2, 10, 10, 5)</l>
+<l>invert_image (ImageIlluminate2, ImageInvert2)</l>
+<l>scale_image (ImageInvert2, ImageScaled2, 0.01, 0)</l>
+<c></c>
+<l>dev_display (Image)</l>
+<l>stop ()</l>
+<l>dev_display (ImageScaled2)</l>
+<l>stop ()</l>
+<c></c>
+<c>* -----------------------------</c>
+<c>* 示例2：高斯滤波 + 阈值分割 + 开闭运算</c>
+<c>* 常用于去噪后提取目标区域</c>
+<c>* -----------------------------</c>
+<l>gauss_filter (Image, ImageGauss2, 3)</l>
+<l>threshold (ImageGauss2, Region2, 100, 255)</l>
+<l>opening_circle (Region2, RegionOpen2, 2.5)</l>
+<l>closing_circle (RegionOpen2, RegionClose2, 2.5)</l>
+<c></c>
+<l>dev_display (Image)</l>
+<l>stop ()</l>
+<l>dev_set_color ('green')</l>
+<l>dev_display (RegionClose2)</l>
+<l>stop ()</l>
+<c></c>
+<c>* =========================================================</c>
+<c>* 结束</c>
+<c>* =========================================================</c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

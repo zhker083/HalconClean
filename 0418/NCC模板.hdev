@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* NCC模板匹配（基于灰度值的归一化相关匹配）</c>
+<c>* NCC = Normalized Cross Correlation</c>
+<c>* 适合：灰度分布比较稳定、目标纹理明显的场景</c>
+<l>dev_set_draw ('margin')</l>
+<l>dev_close_window ()</l>
+<l>read_image (Image, 'D:/HTH/课堂资料/Image/麻将ncc/1.bmp')</l>
+<l>rgb1_to_gray (Image, Image)</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>dev_open_window (0, 0, Width*0.2, Height*0.2, 'black', WindowHandle)</l>
+<l>dev_display (Image)</l>
+<c></c>
+<l>draw_rectangle2 (WindowHandle, Row, Column, Phi, Length1, Length2)</l>
+<l>gen_rectangle2 (Rectangle, Row, Column, Phi, Length1, Length2)</l>
+<l>reduce_domain (Image, Rectangle, ImageReduced)</l>
+<c></c>
+<c>* 创建NCC模板</c>
+<c>* ImageReduced      -&gt; 用来制作模板的图像（通常是截取后的目标区域）</c>
+<c>* 'auto'            -&gt; 金字塔层数自动设置</c>
+<c>* rad(0),rad(360)   -&gt; 模板允许旋转的角度范围：0°到360°</c>
+<c>* 'auto'            -&gt; 角度步长自动设置</c>
+<c>* 'use_polarity'    -&gt; 使用极性，要求模板与目标明暗关系一致</c>
+<c>* ModelID           -&gt; 输出的模板句柄（模板编号）</c>
+<l>create_ncc_model (ImageReduced, \
+                  'auto', \
+                  rad(0), rad(360), \
+                  'auto', \
+                  'use_polarity', \
+                  ModelID)</l>
+<c></c>
+<l>get_ncc_model_region (ModelRegion, ModelID)</l>
+<l>list_image_files ('D:/HTH/课堂资料/Image/麻将ncc', 'default', [], ImageFiles)</l>
+<l>for Index := 0 to |ImageFiles|-1 by 1</l>
+<l>    read_image (Image, ImageFiles[Index])</l>
+<l>    rgb1_to_gray (Image, Image)</l>
+<c>    * 在图像中查找NCC模板</c>
+<c>    * 参数说明：</c>
+<c>    * Image         -&gt; 待搜索图像</c>
+<c>    * ModelID       -&gt; 模板句柄</c>
+<c>    * rad(0),rad(360) -&gt; 搜索角度范围</c>
+<c>    * 0.6           -&gt; 最低匹配分数，越大要求越严格</c>
+<c>    * 1             -&gt; 返回匹配个数，1表示只找一个</c>
+<c>    * 0.5           -&gt; 最大重叠系数</c>
+<c>    * 'true'        -&gt; 是否使用亚像素</c>
+<c>    * 0             -&gt; 金字塔层数，0表示自动</c>
+<c>    * RowFind       -&gt; 找到位置的中心行</c>
+<c>    * ColumnFind    -&gt; 找到位置的中心列</c>
+<c>    * AngleFind     -&gt; 找到位置的角度</c>
+<c>    * Score         -&gt; 匹配分数</c>
+<l>    find_ncc_model (Image, ModelID, \
+                rad(0), rad(360), \
+                0.6, 1, 0.5, 'true', 0, \
+                RowFind, ColumnFind, AngleFind, Score)</l>
+<c>    *如果没有识别到完整区域,就跳过</c>
+<l>    if (|RowFind|=0)</l>
+<l>        wait_seconds (1)</l>
+<l>        continue</l>
+<l>    endif</l>
+<c>    *可视化</c>
+<l>    gen_cross_contour_xld (Cross, RowFind, ColumnFind, 100, rad(45))</l>
+<l>    vector_angle_to_rigid (0, 0, 0,\
+                           RowFind, ColumnFind, AngleFind,\
+                           HomMat2D)</l>
+<l>    affine_trans_region (ModelRegion,\
+                         RegionAffineTrans,\
+                         HomMat2D,\
+                         'nearest_neighbor')</l>
+<l>    if(Index = |ImageFiles|-1)</l>
+<l>        Index := -1</l>
+<l>    endif</l>
+<l>    wait_seconds (0.5)</l>
+<l>endfor</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_update_off ()</l>
+<l>dev_close_window ()</l>
+<c></c>
+<c>* ===== 读取图像并裁剪 =====</c>
+<l>read_image (ImageCable, 'D:/ProgramData/GitHub/Halcon/0318/作业/cable2.png')</l>
+<l>crop_part (ImageCable, ImageCrop, 130, 360, 110, 220)</l>
+<c></c>
+<l>get_image_size (ImageCrop, ImageWidth, ImageHeight)</l>
+<l>dev_open_window (0, 0, ImageWidth*4, ImageHeight*4, 'black', WindowHandle)</l>
+<l>dev_display (ImageCrop)</l>
+<c></c>
+<c>* ===== RGB 转 HSV =====</c>
+<l>decompose3 (ImageCrop, ImageR, ImageG, ImageB)</l>
+<l>trans_from_rgb (ImageR, ImageG, ImageB, ImageH, ImageS, ImageV, 'hsv')</l>
+<c></c>
+<c>* =========================================================</c>
+<c>* 第一组：高饱和度颜色（黄、青、蓝、紫）</c>
+<c>* 主要依据：S高，再按H区分</c>
+<c>* =========================================================</c>
+<l>threshold (ImageS, Region_HighS, 72, 255)</l>
+<l>reduce_domain (ImageH, Region_HighS, ImageH_HighS)</l>
+<c></c>
+<l>HighSColorNames := ['yellow','cyan','blue','purple']</l>
+<l>HighSHueMin := [18,85,126,163]</l>
+<l>HighSHueMax := [53,125,162,200]</l>
+<c></c>
+<l>for Index := 0 to |HighSColorNames|-1 by 1</l>
+<l>    threshold (ImageH_HighS, Region_ColorCandidate, HighSHueMin[Index], HighSHueMax[Index])</l>
+<l>    connection (Region_ColorCandidate, Regions_Connected)</l>
+<l>    select_shape (Regions_Connected, Regions_Selected, 'area', 'and', 500, 99999)</l>
+<c></c>
+<l>    count_obj (Regions_Selected, RegionCount)</l>
+<l>    if (RegionCount &gt; 0)</l>
+<l>        select_shape_std (Regions_Selected, Region_Max, 'max_area', 70)</l>
+<l>        area_center (Region_Max, RegionArea, CenterRow, CenterCol)</l>
+<l>        gen_cross_contour_xld (Cross, CenterRow, CenterCol, 6, 0.785398)</l>
+<l>        dev_display (Cross)</l>
+<l>        dev_disp_text (HighSColorNames[Index], 'image', CenterRow, CenterCol, 'black', [], [])</l>
+<l>    endif</l>
+<l>endfor</l>
+<c></c>
+<c>* =========================================================</c>
+<c>* 第二组：低饱和度颜色（黑、棕）</c>
+<c>* 主要依据：S较低，再按V区分</c>
+<c>* =========================================================</c>
+<l>threshold (ImageS, Region_LowS, 0, 139)</l>
+<l>reduce_domain (ImageV, Region_LowS, ImageV_LowS)</l>
+<c></c>
+<l>LowSColorNames := ['black','brown']</l>
+<l>LowSVMin := [0,56]</l>
+<l>LowSVMax := [55,120]</l>
+<c></c>
+<l>for Index := 0 to |LowSColorNames|-1 by 1</l>
+<l>    threshold (ImageV_LowS, Region_ColorCandidate, LowSVMin[Index], LowSVMax[Index])</l>
+<l>    connection (Region_ColorCandidate, Regions_Connected)</l>
+<l>    fill_up (Regions_Connected, Regions_Filled)</l>
+<l>    select_shape (Regions_Filled, Regions_Selected, 'area', 'and', 500, 99999)</l>
+<c></c>
+<l>    count_obj (Regions_Selected, RegionCount)</l>
+<l>    if (RegionCount &gt; 0)</l>
+<l>        select_shape_std (Regions_Selected, Region_Max, 'max_area', 70)</l>
+<l>        area_center (Region_Max, RegionArea, CenterRow, CenterCol)</l>
+<l>        gen_cross_contour_xld (Cross, CenterRow, CenterCol, 6, 0.785398)</l>
+<l>        dev_display (Cross)</l>
+<l>        dev_disp_text (LowSColorNames[Index], 'image', CenterRow, CenterCol, 'black', [], [])</l>
+<l>    endif</l>
+<l>endfor</l>
+<c></c>
+<c>* =========================================================</c>
+<c>* 第三组：红、粉</c>
+<c>* 主要依据：先取红色Hue范围，再按V区分红/粉</c>
+<c>* =========================================================</c>
+<l>threshold (ImageH, Region_RedHue, 235, 255)</l>
+<l>reduce_domain (ImageV, Region_RedHue, ImageV_RedHue)</l>
+<c></c>
+<l>RedHueColorNames := ['pink','orange']</l>
+<l>RedVMin := [113,190]</l>
+<l>RedVMax := [189,230]</l>
+<c></c>
+<l>for Index := 0 to |RedHueColorNames|-1 by 1</l>
+<l>    threshold (ImageV_RedHue, Region_ColorCandidate, RedVMin[Index], RedVMax[Index])</l>
+<l>    connection (Region_ColorCandidate, Regions_Connected)</l>
+<l>    fill_up (Regions_Connected, Regions_Filled)</l>
+<l>    select_shape (Regions_Filled, Regions_Selected, 'area', 'and', 500, 99999)</l>
+<c></c>
+<l>    count_obj (Regions_Selected, RegionCount)</l>
+<l>    if (RegionCount &gt; 0)</l>
+<l>        select_shape_std (Regions_Selected, Region_Max, 'max_area', 70)</l>
+<l>        area_center (Region_Max, RegionArea, CenterRow, CenterCol)</l>
+<l>        gen_cross_contour_xld (Cross, CenterRow, CenterCol, 6, 0.785398)</l>
+<l>        dev_display (Cross)</l>
+<l>        dev_disp_text (RedHueColorNames[Index], 'image', CenterRow, CenterCol, 'black', [], [])</l>
+<l>    endif</l>
+<l>endfor</l>
+<c></c>
+<l>threshold (ImageR, Region_WhiteLine, 214, 227)</l>
+<l>connection (Region_WhiteLine, WhiteLineConnectedRegions)</l>
+<l>select_shape (WhiteLineConnectedRegions, WhiteLine, 'area', 'and', 500, 99999)</l>
+<l>area_center (WhiteLine, Area, Row, Column)</l>
+<l>gen_cross_contour_xld (Cross, Row, Column, 6, 0.785398)</l>
+<l>dev_display (Cross)</l>
+<l>dev_disp_text ('white', 'image', Row, Column, 'black', [], [])</l>
+<c></c>
+<l>threshold (ImageG, Region_GrayLine, 94, 154)</l>
+<l>connection (Region_GrayLine, GrayLineConnectedRegions)</l>
+<l>select_shape (GrayLineConnectedRegions, GrayLine, 'area', 'and', 1000, 99999)</l>
+<l>area_center (GrayLine, Area, Row, Column)</l>
+<l>gen_cross_contour_xld (Cross, Row, Column, 6, 0.785398)</l>
+<l>dev_display (Cross)</l>
+<l>dev_disp_text ('Gray', 'image', Row, Column, 'black', [], [])</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

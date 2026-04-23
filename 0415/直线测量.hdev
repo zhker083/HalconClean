@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image (Image, 'D:/HTH/课堂资料/Image/模板匹配+几何变换+测量/lk_01.bmp')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<c></c>
+<l>dev_open_window (0, 0, Width, Height, 'black', WindowHandle)</l>
+<l>dev_display (Image)</l>
+<c></c>
+<l>draw_line (WindowHandle, Row1, Col1, Row2, Col2)</l>
+<c></c>
+<l>create_metrology_model (MetrologyHandle)</l>
+<l>set_metrology_model_image_size (MetrologyHandle, Width, Height)</l>
+<c></c>
+<l>add_metrology_object_line_measure (MetrologyHandle, Row1, Col1, Row2, Col2, \
+                                   20, 2, 3, 3, [], [], Index)</l>
+<c></c>
+<l>set_metrology_object_param (MetrologyHandle, Index, 'num_instances', 1)</l>
+<l>set_metrology_object_param (MetrologyHandle, Index, 'measure_distance', 5)</l>
+<l>set_metrology_object_param (MetrologyHandle, Index, 'measure_transition', 'uniform')</l>
+<l>set_metrology_object_param (MetrologyHandle, Index, 'measure_select', 'all')</l>
+<l>set_metrology_object_param (MetrologyHandle, Index, 'min_score', 0.3)</l>
+<c></c>
+<l>apply_metrology_model (Image, MetrologyHandle)</l>
+<c></c>
+<l>get_metrology_object_measures (MeasureContours, MetrologyHandle, Index, 'all', RowPoints, ColPoints)</l>
+<c></c>
+<l>get_metrology_object_result (MetrologyHandle, Index, 'all', 'result_type', 'all_param', LineParam)</l>
+<l>get_metrology_object_result_contour (ResultContour, MetrologyHandle, Index, 'all', 1.5)</l>
+<c></c>
+<l>gen_cross_contour_xld (PointCross, RowPoints, ColPoints, 6, 0.785398)</l>
+<c></c>
+<l>gen_cross_contour_xld (EndCross1, LineParam[0], LineParam[1], 20, 0.785398)</l>
+<l>gen_cross_contour_xld (EndCross2, LineParam[2], LineParam[3], 20, 0.785398)</l>
+<c></c>
+<l>distance_pp (LineParam[0], LineParam[1], LineParam[2], LineParam[3], LineLength)</l>
+<c></c>
+<c>* distance_pl (RowPoints, ColPoints, \
+*              LineParam[0], LineParam[1], \
+*              LineParam[2], LineParam[3], \
+*              PointToLineDistance)</c>
+<l>* tuple_max (PointToLineDistance, MaxDistance)</l>
+<l>* tuple_min (PointToLineDistance, MinDistance)</l>
+<c></c>
+<l>dev_display (Image)</l>
+<c></c>
+<l>dev_set_color ('green')</l>
+<l>dev_display (MeasureContours)</l>
+<c></c>
+<l>dev_set_color ('cyan')</l>
+<l>dev_display (PointCross)</l>
+<c></c>
+<l>dev_set_color ('red')</l>
+<l>dev_display (ResultContour)</l>
+<c></c>
+<l>dev_set_color ('yellow')</l>
+<l>dev_display (EndCross1)</l>
+<l>dev_display (EndCross2)</l>
+<c></c>
+<l>disp_message (WindowHandle, '直线距离: ' + LineLength$'.2f' + ' px', \
+              'window', 20, 20, 'red', 'false')</l>
+<c></c>
+<l>clear_metrology_model (MetrologyHandle)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

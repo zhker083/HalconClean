@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 距离测量</c>
+<l>read_image (Lk01, 'D:/ProgramData/GitHub/Halcon/模板匹配+几何变换+测量/lk_01.bmp')</l>
+<l>dev_display (Lk01)</l>
+<c></c>
+<l>Button := -1</l>
+<l>RowList := []</l>
+<l>ColList := []</l>
+<l>dev_get_window (WH)</l>
+<c></c>
+<l>while (Button != 4)</l>
+<l>    get_mbutton (WH, Row, Col, Button)</l>
+<l>    if (Button == 1)</l>
+<l>        RowList := [RowList, Row]</l>
+<l>        ColList := [ColList, Col]</l>
+<l>        dev_display (Lk01)</l>
+<l>        gen_cross_contour_xld (Cross, RowList, ColList, 20, 0.785398)</l>
+<l>        dev_set_color ('red')</l>
+<l>        dev_display (Cross)</l>
+<l>    endif</l>
+<l>endwhile</l>
+<c>* 点点距离</c>
+<l>if (|RowList| = 2)</l>
+<l>    gen_contour_polygon_xld (Line, [RowList[0],RowList[1]], [ColList[0],ColList[1]])</l>
+<l>    distance_pp (RowList[0], ColList[0], RowList[1], ColList[1], Distance)</l>
+<l>    dev_set_color ('green')</l>
+<l>    dev_display (Line)</l>
+<l>    Message := 'Point-Point Distance = ' + Distance$'.2f' + ' Pix'</l>
+<l>    dev_disp_text (Message, 'window', 20, 20, 'yellow', 'box', 'false')</l>
+<l>endif</l>
+<c></c>
+<c></c>
+<c>* 点线距离</c>
+<l>if (|RowList| = 3)</l>
+<c>    * 前两个点作为直线</c>
+<l>    gen_contour_polygon_xld (LinePL, [RowList[0],RowList[1]], [ColList[0],ColList[1]])</l>
+<c></c>
+<c>    * 第三个点到前两个点构成直线的距离</c>
+<l>    distance_pl (RowList[2], ColList[2], RowList[0], ColList[0], RowList[1], ColList[1], DistancePL)</l>
+<c></c>
+<c>    * 显示直线</c>
+<l>    dev_set_color ('blue')</l>
+<l>    dev_display (LinePL)</l>
+<c></c>
+<c>    * 单独显示第3个点</c>
+<l>    gen_cross_contour_xld (CrossPL, RowList[2], ColList[2], 30, 0.785398)</l>
+<l>    dev_set_color ('cyan')</l>
+<l>    dev_display (CrossPL)</l>
+<c></c>
+<c>    * 显示点线距离</c>
+<l>    MessagePL := 'Point-Line Distance = ' + DistancePL$'.2f' + ' Pix'</l>
+<l>    dev_disp_text (MessagePL, 'window', 60, 20, 'green', 'box', 'false')</l>
+<l>endif</l>
+<c>*distance_rr_min</c>
+<c>*distance_ps</c>
+<c>*distance_cc_min_points</c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

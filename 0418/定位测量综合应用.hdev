@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* ==================================================</c>
+<c>* 定位 + 几何变换 + 直线测量 综合应用</c>
+<c>* ==================================================</c>
+<c></c>
+<c>* 读取基准图像</c>
+<l>read_image (ImageSrc, 'D:/ProgramData/GitHub/Halcon/模板匹配+几何变换+测量/lk_01.bmp')</l>
+<l>dev_display (ImageSrc)</l>
+<l>dev_set_draw ('margin')</l>
+<l>dev_get_window (WindowHandle)</l>
+<c></c>
+<c>* -------------------------------</c>
+<c>* 1. 制作形状模板</c>
+<c>* -------------------------------</c>
+<l>draw_rectangle1 (WindowHandle,\
+                 TemplateRegionRow1, TemplateRegionCol1,\
+                 TemplateRegionRow2, TemplateRegionCol2)</l>
+<c></c>
+<l>gen_rectangle1 (RegionTemplate,\
+                TemplateRegionRow1, TemplateRegionCol1,\
+                TemplateRegionRow2, TemplateRegionCol2)</l>
+<c></c>
+<l>reduce_domain (ImageSrc, RegionTemplate, ImageTemplate)</l>
+<c></c>
+<l>create_shape_model (ImageTemplate,\
+                    'auto',\
+                    rad(0), rad(360),\
+                    'auto',\
+                    'auto',\
+                    'use_polarity',\
+                    'auto', 'auto',\
+                    ShapeModelID)</l>
+<c></c>
+<l>get_shape_model_contours (ContourShapeModel, ShapeModelID, 1)</l>
+<c></c>
+<l>find_shape_model (ImageSrc,\
+                  ShapeModelID,\
+                  rad(0), rad(360),\
+                  0.5, 1, 0.5,\
+                  'least_squares',\
+                  0, 0.9,\
+                  TemplateRefRow, TemplateRefCol,\
+                  TemplateRefAngle,\
+                  TemplateRefScore)</l>
+<c></c>
+<l>gen_cross_contour_xld (ContourTemplateRefCross, TemplateRefRow, TemplateRefCol, 20, rad(45))</l>
+<c></c>
+<l>dev_display (ImageSrc)</l>
+<l>dev_set_color ('green')</l>
+<l>dev_display (ContourTemplateRefCross)</l>
+<c></c>
+<c>* -------------------------------</c>
+<c>* 2. 制作直线测量模板</c>
+<c>* -------------------------------</c>
+<l>draw_line (WindowHandle, MeasureDrawStartRow, MeasureDrawStartCol, MeasureDrawEndRow, MeasureDrawEndCol)</l>
+<c></c>
+<l>create_metrology_model (MetrologyModelHandle)</l>
+<c></c>
+<l>add_metrology_object_line_measure (MetrologyModelHandle,\
+                                   MeasureDrawStartRow, MeasureDrawStartCol,\
+                                   MeasureDrawEndRow, MeasureDrawEndCol,\
+                                   20, 5, 1, 30,\
+                                   [], [],\
+                                   MeasureObjectIndex)</l>
+<c></c>
+<l>apply_metrology_model (ImageTemplate, MetrologyModelHandle)</l>
+<c></c>
+<l>get_metrology_object_measures (ContourMeasureSample,\
+                               MetrologyModelHandle,\
+                               'all', 'all',\
+                               MeasureSampleRows, MeasureSampleCols)</l>
+<c></c>
+<l>get_metrology_object_result (MetrologyModelHandle,\
+                             0,\
+                             'all',\
+                             'result_type',\
+                             'all_param',\
+                             MeasureRefParams)</l>
+<c></c>
+<l>if (|MeasureRefParams| = 0)</l>
+<l>    dev_disp_text ('直线测量失败，请重新制作模板', 'window', 10, 10, 'red', [], [])</l>
+<l>    stop ()</l>
+<l>endif</l>
+<c></c>
+<l>LineRefStartRow := MeasureRefParams[0]</l>
+<l>LineRefStartCol := MeasureRefParams[1]</l>
+<l>LineRefEndRow   := MeasureRefParams[2]</l>
+<l>LineRefEndCol   := MeasureRefParams[3]</l>
+<c></c>
+<l>gen_contour_polygon_xld (ContourLineRef,\
+                         [LineRefStartRow, LineRefEndRow],\
+                         [LineRefStartCol, LineRefEndCol])</l>
+<c></c>
+<l>dev_display (ImageSrc)</l>
+<l>dev_set_color ('green')</l>
+<l>dev_display (ContourTemplateRefCross)</l>
+<l>dev_set_color ('blue')</l>
+<l>dev_display (ContourLineRef)</l>
+<c></c>
+<c>* -------------------------------</c>
+<c>* 3. 批量检测与位姿变换</c>
+<c>* -------------------------------</c>
+<l>list_image_files ('D:/ProgramData/GitHub/Halcon/模板匹配+几何变换+测量', 'default', [], ImageFileList)</l>
+<c></c>
+<l>for ImageIndex := 1 to |ImageFileList| - 1 by 1</l>
+<c></c>
+<c>    * 读取当前图像并定位模板</c>
+<l>    read_image (ImageSrc, ImageFileList[ImageIndex])</l>
+<c></c>
+<l>    find_shape_model (ImageSrc,\
+                      ShapeModelID,\
+                      rad(0), rad(360),\
+                      0.5, 1, 0.5,\
+                      'least_squares',\
+                      0, 0.9,\
+                      TemplateCurRow, TemplateCurCol, TemplateCurAngle,\
+                      TemplateCurScore)</l>
+<c></c>
+<l>    if (|TemplateCurScore| = 0)</l>
+<l>        dev_display (ImageSrc)</l>
+<l>        dev_disp_text ('当前图像模板匹配失败', 'window', 10, 10, 'red', [], [])</l>
+<l>        wait_seconds (0.5)</l>
+<l>        if (ImageIndex = |ImageFileList| - 1)</l>
+<l>            ImageIndex := -1</l>
+<l>        endif</l>
+<l>        continue</l>
+<l>    endif</l>
+<c></c>
+<l>    gen_cross_contour_xld (ContourTemplateCurCross, TemplateCurRow, TemplateCurCol, 20, rad(45))</l>
+<c></c>
+<c>    * 模板轮廓变换</c>
+<l>    vector_angle_to_rigid (0, 0, 0,\
+                           TemplateCurRow, TemplateCurCol, TemplateCurAngle,\
+                           HomMat2DModelToCurrent)</l>
+<c></c>
+<l>    affine_trans_contour_xld (ContourShapeModel, ContourShapeModelTrans, HomMat2DModelToCurrent)</l>
+<c></c>
+<c>    * 基准测量线变换</c>
+<l>    vector_angle_to_rigid (TemplateRefRow, TemplateRefCol, TemplateRefAngle,\
+                           TemplateCurRow, TemplateCurCol, TemplateCurAngle,\
+                           HomMat2DRefToCurrent)</l>
+<c></c>
+<l>    affine_trans_point_2d (HomMat2DRefToCurrent,\
+                           LineRefStartRow, LineRefStartCol,\
+                           LineCurStartRow, LineCurStartCol)</l>
+<c></c>
+<l>    affine_trans_point_2d (HomMat2DRefToCurrent,\
+                           LineRefEndRow, LineRefEndCol,\
+                           LineCurEndRow, LineCurEndCol)</l>
+<c></c>
+<c>    * 重建当前图像的测量模型</c>
+<l>    clear_metrology_model (MetrologyModelHandle)</l>
+<l>    create_metrology_model (MetrologyModelHandle)</l>
+<c></c>
+<l>    add_metrology_object_line_measure (MetrologyModelHandle,\
+                                       LineCurStartRow, LineCurStartCol,\
+                                       LineCurEndRow, LineCurEndCol,\
+                                       20, 5, 1, 30,\
+                                       [], [],\
+                                       MeasureObjectIndexCur)</l>
+<c></c>
+<c>    * 执行测量并获取小卡尺</c>
+<l>    apply_metrology_model (ImageSrc, MetrologyModelHandle)</l>
+<c></c>
+<l>    get_metrology_object_result (MetrologyModelHandle,\
+                                 0,\
+                                 'all',\
+                                 'result_type',\
+                                 'all_param',\
+                                 MeasureCurParams)</l>
+<c></c>
+<l>    get_metrology_object_measures (ContourMeasureSampleCur,\
+                                   MetrologyModelHandle,\
+                                   'all', 'all',\
+                                   MeasureSampleRowsCur, MeasureSampleColsCur)</l>
+<c></c>
+<c>    * 显示定位结果与小卡尺</c>
+<l>    dev_display (ImageSrc)</l>
+<c></c>
+<l>    dev_set_color ('green')</l>
+<l>    dev_display (ContourShapeModelTrans)</l>
+<c></c>
+<l>    dev_set_color ('red')</l>
+<l>    dev_display (ContourTemplateCurCross)</l>
+<c></c>
+<l>    dev_set_color ('yellow')</l>
+<l>    dev_display (ContourMeasureSampleCur)</l>
+<c></c>
+<c>    * 显示测量结果</c>
+<l>    if (|MeasureCurParams| &gt;= 4)</l>
+<c></c>
+<l>        LineResultStartRow := MeasureCurParams[0]</l>
+<l>        LineResultStartCol := MeasureCurParams[1]</l>
+<l>        LineResultEndRow   := MeasureCurParams[2]</l>
+<l>        LineResultEndCol   := MeasureCurParams[3]</l>
+<c></c>
+<l>        gen_cross_contour_xld (ContourLineCurStartCross,\
+                               LineResultStartRow, LineResultStartCol,\
+                               20, rad(45))</l>
+<c></c>
+<l>        gen_cross_contour_xld (ContourLineCurEndCross,\
+                               LineResultEndRow, LineResultEndCol,\
+                               20, rad(45))</l>
+<c></c>
+<l>        gen_contour_polygon_xld (ContourLineResult,\
+                                 [LineResultStartRow, LineResultEndRow],\
+                                 [LineResultStartCol, LineResultEndCol])</l>
+<c></c>
+<l>        dev_set_color ('blue')</l>
+<l>        dev_display (ContourLineResult)</l>
+<c></c>
+<l>        dev_set_color ('cyan')</l>
+<l>        dev_display (ContourLineCurStartCross)</l>
+<l>        dev_display (ContourLineCurEndCross)</l>
+<c></c>
+<l>    else</l>
+<l>        dev_disp_text ('当前图像直线测量失败', 'window', 10, 10, 'yellow', [], [])</l>
+<l>    endif</l>
+<c></c>
+<c>    * 循环播放</c>
+<l>    if (ImageIndex = |ImageFileList| - 1)</l>
+<l>        ImageIndex := -1</l>
+<l>    endif</l>
+<c></c>
+<l>    wait_seconds (0.5)</l>
+<c></c>
+<l>endfor</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

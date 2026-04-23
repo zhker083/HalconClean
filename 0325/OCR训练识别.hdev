@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image (Image, 'D:/ProgramData/GitHub/Halcon/0325/Image.png')</l>
+<c></c>
+<l>rgb1_to_gray (Image, GrayImage)</l>
+<c>*白字黑纸转换成白纸黑字</c>
+<l>invert_image (GrayImage, GrayImage)</l>
+<l>dev_get_window (WindowHandle)</l>
+<l>dev_set_draw ('margin')</l>
+<c></c>
+<c>*创建一个空的对象    关联集合   笔迹训练</c>
+<l>gen_empty_obj (charsObject)</l>
+<c></c>
+<l>*for Index := 0 to 2 by 1</l>
+<l>    draw_rectangle1 (WindowHandle, Row1, Column1, Row2, Column2)</l>
+<l>    gen_rectangle1 (Rectangle, Row1, Column1, Row2, Column2)</l>
+<l>    reduce_domain (GrayImage, Rectangle, ImageReduced1)</l>
+<c>    *阈值</c>
+<l>    threshold (ImageReduced1, Rectangle1, 0, 140)</l>
+<c>    *对象连接  charsObject = charsObject + Rectangle1</c>
+<l>    concat_obj (charsObject, Rectangle1, charsObject)</l>
+<l>*endfor</l>
+<c></c>
+<c>*区域对应的字体</c>
+<l>words:=['桂']</l>
+<c></c>
+<c>*D盘下面 001halcon 文件夹 里面的 2.trf文件 </c>
+<l>FileTrf:= 'D:/ProgramData/GitHub/Halcon/0325/gui.trf' //需要训练的（区域与字符关联）</l>
+<c></c>
+<c>*因为文件字迹需要 一一对应 所以用循环遍历</c>
+<l>*for Index1:=1 to 3 by 1</l>
+<c> *选择对象  索引从1开始的</c>
+<c> *从源  charsObject 数组 选择 Index1 个 = ObjectSelected1</c>
+<l>select_obj (charsObject, ObjectSelected1, 1)</l>
+<c> </c>
+<c> *当前 笔迹对应的 中文字符 words 从0开始的</c>
+<l> word := words[0]</l>
+<c> </c>
+<c> * 追加的形式</c>
+<c> * 添加训练模型到文件中  笔迹关联上中文字符的关系</c>
+<c> * ObjectSelected1--&gt; 字符对应的区域（笔迹）</c>
+<c> * GrayImage --&gt; 区域是在哪个图上的</c>
+<c> * word --&gt; 区域对应的字符是什么</c>
+<c> * FlieTrf 准备训练文件的全路径</c>
+<l> append_ocr_trainf (ObjectSelected1, GrayImage, \
+                    word, FileTrf) </l>
+<c> </c>
+<c> *覆盖的形式  每次都是新的文件</c>
+<l> *write_ocr_trainf (SortedRegions1, ImageReduced1, words, 'train_ocr')</l>
+<c> </c>
+<l>*endfor</l>
+<c></c>
+<c>*读取准备要训练的文件 FlieTrf --&gt;文件路径 </c>
+<c>* CharacterNames 文字关联 </c>
+<c>* CharacterCount</c>
+<c>* 同一个字符添加多次  CharacterNames 是不会变的</c>
+<c>* 但是  CharacterCount 会改变</c>
+<l>read_ocr_trainf_names (FileTrf, CharacterNames,\
+                       CharacterCount)</l>
+<c></c>
+<c>*创建一个mlp（神经脉络）格式的训练模型 OCRHandle  </c>
+<c>*8, 10 字符区域的宽高单位是像素 </c>
+<c>* CharacterNames --&gt; 预训练文件里面是什么 字符</c>
+<l>create_ocr_class_mlp (8, 10, 'constant', 'default', \
+            CharacterNames, 80, 'none', 10, 42, OCRHandle)</l>
+<c></c>
+<c>*开始训练</c>
+<l>trainf_ocr_class_mlp (OCRHandle, FileTrf, 100, 1, 0.01, \
+                      Error, ErrorLog)</l>
+<c></c>
+<c>*halcon 里面 mlp 文件格式  .omc</c>
+<l>FileOmc:= 'D:/ProgramData/GitHub/Halcon/0325/gui.omc' //训练好的</l>
+<c></c>
+<c>*把训练的模型写入到文件当中</c>
+<l>write_ocr_class_mlp (OCRHandle, FileOmc)</l>
+<c></c>
+<c>*清除句柄</c>
+<l>clear_ocr_class_mlp (OCRHandle)</l>
+<c></c>
+<c></c>
+<c>*开始识别 FlieOmc --&gt;分类器的路径    OCRHandle1--&gt;识别句柄</c>
+<l>read_ocr_class_mlp (FileOmc, OCRHandle1)</l>
+<c></c>
+<l>*for Index2 := 3 to 1 by -1</l>
+<c>     *选择对象  索引从1开始的</c>
+<l>     select_obj (charsObject, ObjectSelected1, 1)</l>
+<c>     *开始做识别 SortedRegions2 识别字符的区域  GrayImage 区域所在的图像</c>
+<c>     *OCRHandle1识别句柄   Class 返回识别的结果  Confidence 识别的分数</c>
+<l>     do_ocr_multi_class_mlp (ObjectSelected1, GrayImage, \
+                        OCRHandle1, Class, Confidence)</l>
+<c>    </c>
+<l>     disp_message (WindowHandle, Class, 'window', 100, 200, 'green', 'true')</l>
+<c>     </c>
+<l>*endfor</l>
+<c></c>
+<c></c>
+<l>read_image (Image, 'D:/ProgramData/GitHub/Halcon/0325/Image.png')</l>
+<l>rgb1_to_gray (Image, GrayImage2)</l>
+<l>draw_rectangle1 (WindowHandle, Row1, Column1, Row2, Column2)</l>
+<l>gen_rectangle1 (Rectangle1, Row1, Column1, Row2, Column2)</l>
+<l>reduce_domain (GrayImage2, Rectangle1, ImageReduced2)</l>
+<l>threshold (ImageReduced2, Rectangle2, 200, 255)</l>
+<l>do_ocr_multi_class_mlp (Rectangle2, GrayImage2, \
+                 OCRHandle1, Class2, Confidence2)</l>
+<l>if (Confidence2 &gt; 0.99)</l>
+<c>    </c>
+<l>    disp_message (WindowHandle, '识别成功' + '结果为' + Class2 , \
+                  '2222', 100, 200, 'black', 'true')</l>
+<l>endif</l>
+<c></c>
+<c>*识别的时候必须加上得分判断  \
+因为识别没训练过的是成功的  但是结果不对</c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

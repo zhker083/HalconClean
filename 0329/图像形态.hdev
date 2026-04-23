@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* ------------------------------------------</c>
+<c>* 常用图像形态学算子示例</c>
+<c>* 说明：</c>
+<c>* 1. 以 rim 图像和一个矩形ROI为基础</c>
+<c>* 2. 演示常用的膨胀、腐蚀、开运算、闭运算、填孔、边界、骨架</c>
+<c>* 3. 每个算子都加上作用注释</c>
+<c>* ------------------------------------------</c>
+<c></c>
+<c>* 读取图像</c>
+<l>read_image (Image, 'rim')</l>
+<c></c>
+<c>* 设置显示模式为边框显示</c>
+<l>dev_set_draw ('margin')</l>
+<c></c>
+<c>* 显示原图</c>
+<l>dev_display (Image)</l>
+<c></c>
+<c>* 生成一个矩形区域ROI</c>
+<c>* 输入：</c>
+<c>*   200.149, 236.882  左上角行、列坐标</c>
+<c>*   340.257, 377.682  右下角行、列坐标</c>
+<c>* 输出：</c>
+<c>*   ROI_0             原始矩形区域</c>
+<l>gen_rectangle1 (ROI_0, 200.149, 236.882, 340.257, 377.682)</l>
+<c></c>
+<c>* 显示原始ROI</c>
+<l>dev_set_color ('red')</l>
+<l>dev_display (ROI_0)</l>
+<c></c>
+<c></c>
+<c>* ------------------------------------------</c>
+<c>* 1. 膨胀</c>
+<c>* 作用：让区域向外扩张，目标变大</c>
+<c>* 常用于连接断裂区域、填补小缝隙</c>
+<c>* ------------------------------------------</c>
+<c></c>
+<c>* 矩形膨胀</c>
+<c>* 输入：</c>
+<c>*   ROI_0                原始区域</c>
+<c>*   11, 11               矩形模板宽、高</c>
+<c>* 输出：</c>
+<c>*   RegionDilationRect   矩形膨胀后的区域</c>
+<l>dilation_rectangle1 (ROI_0, RegionDilationRect, 11, 11)</l>
+<c></c>
+<l>dev_set_color ('green')</l>
+<l>dev_display (RegionDilationRect)</l>
+<c></c>
+<c>* 圆形膨胀</c>
+<c>* 输入：</c>
+<c>*   ROI_0                  原始区域</c>
+<c>*   5.5                    圆形半径</c>
+<c>* 输出：</c>
+<c>*   RegionDilationCircle   圆形膨胀后的区域</c>
+<l>dilation_circle (ROI_0, RegionDilationCircle, 5.5)</l>
+<c></c>
+<l>dev_set_color ('blue')</l>
+<l>dev_display (RegionDilationCircle)</l>
+<c></c>
+<c></c>
+<c>* ------------------------------------------</c>
+<c>* 2. 腐蚀</c>
+<c>* 作用：让区域向内收缩，目标变小</c>
+<c>* 常用于去除边缘毛刺、小噪声</c>
+<c>* ------------------------------------------</c>
+<c></c>
+<c>* 矩形腐蚀</c>
+<c>* 输入：</c>
+<c>*   ROI_0              原始区域</c>
+<c>*   10, 11             矩形模板宽、高</c>
+<c>* 输出：</c>
+<c>*   RegionErosionRect  矩形腐蚀后的区域</c>
+<l>erosion_rectangle1 (ROI_0, RegionErosionRect, 10, 11)</l>
+<c></c>
+<l>dev_set_color ('yellow')</l>
+<l>dev_display (RegionErosionRect)</l>
+<c></c>
+<c>* 圆形腐蚀</c>
+<c>* 输入：</c>
+<c>*   ROI_0                原始区域</c>
+<c>*   5.5                  圆形半径</c>
+<c>* 输出：</c>
+<c>*   RegionErosionCircle  圆形腐蚀后的区域</c>
+<l>erosion_circle (ROI_0, RegionErosionCircle, 5.5)</l>
+<c></c>
+<l>dev_set_color ('cyan')</l>
+<l>dev_display (RegionErosionCircle)</l>
+<c></c>
+<c></c>
+<c>* ------------------------------------------</c>
+<c>* 3. 开运算</c>
+<c>* 作用：先腐蚀，再膨胀</c>
+<c>* 常用于去掉小噪声、小凸起，保留主体</c>
+<c>* ------------------------------------------</c>
+<c></c>
+<c>* 矩形开运算</c>
+<c>* 输入：</c>
+<c>*   open              原始区域</c>
+<c>*   11, 11             矩形模板宽、高</c>
+<c>* 输出：</c>
+<c>*   RegionOpeningRect  开运算后的区域</c>
+<l>read_image (open,'D:/ProgramData/GitHub/Halcon/0329/opening.png')</l>
+<l>dev_set_draw ('fill')</l>
+<l>threshold (open, Region, 120, 255)</l>
+<l>opening_rectangle1 (Region, RegionOpeningRect, 10, 8)</l>
+<l>dev_set_color ('magenta')</l>
+<l>dev_display (RegionOpeningRect)</l>
+<c></c>
+<c>* ------------------------------------------</c>
+<c>* 4. 闭运算</c>
+<c>* 作用：先膨胀，再腐蚀</c>
+<c>* 常用于填补小孔洞、连接小间隙</c>
+<c>* ------------------------------------------</c>
+<c></c>
+<c>* 矩形闭运算</c>
+<c>* 输入：</c>
+<c>*   close              原始区域</c>
+<c>*   11, 11             矩形模板宽、高</c>
+<c>* 输出：</c>
+<c>*   RegionClosingRect  闭运算后的区域</c>
+<l>read_image (close,'D:/ProgramData/GitHub/Halcon/0329/closing.png')</l>
+<l>dev_set_draw ('fill')</l>
+<l>threshold (close, Region, 120, 255)</l>
+<l>closing_rectangle1 (Region, RegionClosingRect, 11, 11)</l>
+<c></c>
+<l>dev_set_color ('forest green')</l>
+<l>dev_display (RegionClosingRect)</l>
+<c></c>
+<c>* ------------------------------------------</c>
+<c>* 5. 填充孔洞</c>
+<c>* 作用：把区域内部的空洞填满</c>
+<c>* 常用于目标内部有黑洞、断空的情况</c>
+<c>* ------------------------------------------</c>
+<c></c>
+<c>* 填孔</c>
+<c>* 输入：</c>
+<c>*   ROI_0          原始区域</c>
+<c>* 输出：</c>
+<c>*   RegionFillUp   填孔后的区域</c>
+<l>fill_up (ROI_0, RegionFillUp)</l>
+<c></c>
+<l>dev_set_color ('white')</l>
+<l>dev_display (RegionFillUp)</l>
+<c></c>
+<c></c>
+<c>* ------------------------------------------</c>
+<c>* 6. 边界提取</c>
+<c>* 作用：提取区域的边框轮廓</c>
+<c>* 常用于只看目标轮廓，不看内部</c>
+<c>* ------------------------------------------</c>
+<c></c>
+<c>* 提取外边界</c>
+<c>* 输入：</c>
+<c>*   ROI_0             原始区域</c>
+<c>*   'outer'           提取外边界</c>
+<c>* 输出：</c>
+<c>*   RegionBoundary    边界区域</c>
+<l>boundary (ROI_0, RegionBoundary, 'outer')</l>
+<c></c>
+<l>dev_set_color ('black')</l>
+<l>dev_display (RegionBoundary)</l>
+<c></c>
+<c></c>
+<c>* ------------------------------------------</c>
+<c>* 7. 骨架提取</c>
+<c>* 作用：把区域细化成中轴骨架</c>
+<c>* 常用于细长目标分析、拓扑结构分析</c>
+<c>* ------------------------------------------</c>
+<c></c>
+<c>* 骨架提取</c>
+<c>* 输入：</c>
+<c>*   ROI_0             原始区域</c>
+<c>* 输出：</c>
+<c>*   RegionSkeleton    骨架区域</c>
+<l>skeleton (ROI_0, RegionSkeleton)</l>
+<c></c>
+<l>dev_set_color ('brown')</l>
+<l>dev_display (RegionSkeleton)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

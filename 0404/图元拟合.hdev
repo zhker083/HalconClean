@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* UI3</c>
+<l>read_image (Lk01, 'D:/ProgramData/GitHub/Halcon/模板匹配+几何变换+测量/lk_01.bmp')</l>
+<l>dev_display (Lk01)</l>
+<c></c>
+<l>Button := -1</l>
+<l>RowList := []</l>
+<l>ColList := []</l>
+<l>dev_get_window (WH)</l>
+<c></c>
+<c>* 鼠标交互取点：左键取点，右键结束</c>
+<l>while (Button != 4)</l>
+<c>    *获取鼠标坐标</c>
+<l>    get_mbutton (WH, Row, Col, Button)</l>
+<l>    if (Button == 1)</l>
+<l>        RowList := [RowList, Row]</l>
+<l>        ColList := [ColList, Col]</l>
+<l>        dev_display (Lk01)</l>
+<l>        gen_cross_contour_xld (Cross, RowList, ColList, 20, 0.785398)</l>
+<l>        dev_set_color ('red')</l>
+<l>        dev_display (Cross)</l>
+<l>    endif</l>
+<l>endwhile</l>
+<c></c>
+<c>* 点连线</c>
+<l>gen_contour_polygon_xld (Contour, RowList, ColList)</l>
+<c>* gen_contour_polygon_xld：</c>
+<c>* 作用：把前面鼠标选取的多个点，按顺序连接成一个 XLD 轮廓</c>
+<c>* 输入：</c>
+<c>*   RowList  -&gt; 所有点的行坐标元组</c>
+<c>*   ColList  -&gt; 所有点的列坐标元组</c>
+<c>* 输出：</c>
+<c>*   Contour  -&gt; 由这些点依次连接形成的轮廓</c>
+<c>* 说明：</c>
+<c>*   这个轮廓既可以作为“原始折线”显示出来，</c>
+<c>*   也可以继续作为后面拟合直线、拟合圆的输入数据</c>
+<c></c>
+<c>* 拟合线</c>
+<l>*fit_line_contour_xld (Contour, 'tukey', -1, 0, 5, 2, RowBegin, ColBegin, RowEnd, ColEnd, Nr, Nc, Dist)</l>
+<c>* fit_line_contour_xld：</c>
+<c>* 作用：对轮廓 Contour 做直线拟合</c>
+<c>* 输入：</c>
+<c>*   Contour   -&gt; 要拟合的 XLD 轮廓</c>
+<c>*   'tukey'   -&gt; 拟合方式，抗异常点能力较好</c>
+<c>*   -1        -&gt; 使用全部轮廓点</c>
+<c>*   0         -&gt; 不裁剪首尾点</c>
+<c>*   5         -&gt; 最大迭代次数</c>
+<c>*   2         -&gt; 拟合所需的最少点数约束</c>
+<c>* 输出：</c>
+<c>*   RowBegin, ColBegin -&gt; 拟合直线起点坐标</c>
+<c>*   RowEnd, ColEnd     -&gt; 拟合直线终点坐标</c>
+<c>*   Nr, Nc             -&gt; 直线法向量分量</c>
+<c>*   Dist               -&gt; 点到拟合线的平均距离/拟合误差参考量</c>
+<c>* 说明：</c>
+<c>*   这一步并不是简单连接首尾两点，</c>
+<c>*   而是根据所有输入点整体“拟合”出一条最合适的直线</c>
+<c></c>
+<l>*gen_contour_polygon_xld (Line, [RowBegin,RowEnd], [ColBegin,ColEnd])</l>
+<c>* gen_contour_polygon_xld：</c>
+<c>* 作用：把拟合出来的直线起点和终点再生成为一条可显示的 XLD 线段</c>
+<c>* 输入：</c>
+<c>*   [RowBegin,RowEnd] -&gt; 直线两端点的行坐标</c>
+<c>*   [ColBegin,ColEnd] -&gt; 直线两端点的列坐标</c>
+<c>* 输出：</c>
+<c>*   Line              -&gt; 可直接显示的拟合直线轮廓</c>
+<c></c>
+<c>* 拟合圆</c>
+<l>fit_circle_contour_xld (Contour, 'algebraic', -1, 0, 0, 3, 2, RowCenter, ColCenter, Radius, StartPhi, EndPhi, PointOrder)</l>
+<c>* fit_circle_contour_xld：</c>
+<c>* 作用：对轮廓 Contour 做圆拟合</c>
+<c>* 输入：</c>
+<c>*   Contour      -&gt; 要拟合的 XLD 轮廓</c>
+<c>*   'algebraic'  -&gt; 代数拟合方式，速度快，课堂和基础练习里很常用</c>
+<c>*   -1           -&gt; 使用全部轮廓点</c>
+<c>*   0, 0         -&gt; 不裁剪轮廓首尾点</c>
+<c>*   3            -&gt; 最大迭代次数/鲁棒拟合控制参数之一</c>
+<c>*   2            -&gt; 拟合所需最少点数约束</c>
+<c>* 输出：</c>
+<c>*   RowCenter    -&gt; 拟合圆圆心的行坐标</c>
+<c>*   ColCenter    -&gt; 拟合圆圆心的列坐标</c>
+<c>*   Radius       -&gt; 拟合圆半径</c>
+<c>*   StartPhi     -&gt; 拟合圆弧起始角度</c>
+<c>*   EndPhi       -&gt; 拟合圆弧终止角度</c>
+<c>*   PointOrder   -&gt; 圆弧方向，positive 或 negative</c>
+<c>* 说明：</c>
+<c>*   这里虽然输入的是一串离散点连成的轮廓，</c>
+<c>*   但算子会根据整体点分布，求出一个最符合这些点的圆</c>
+<c></c>
+<l>gen_circle_contour_xld (ContCircle, RowCenter, ColCenter, Radius, 0, 6.28318, 'positive', 1)</l>
+<c>* gen_circle_contour_xld：</c>
+<c>* 作用：根据拟合得到的圆心和半径，生成一个完整的圆轮廓</c>
+<c>* 输入：</c>
+<c>*   RowCenter, ColCenter -&gt; 圆心坐标</c>
+<c>*   Radius               -&gt; 半径</c>
+<c>*   0                    -&gt; 起始角，0 表示从 0 弧度开始</c>
+<c>*   6.28318              -&gt; 终止角，约等于 2π，表示整圆</c>
+<c>*   'positive'           -&gt; 按逆时针正方向生成  </c>
+<c>*   1                    -&gt; 点间隔/采样精度</c>
+<c>* 输出：</c>
+<c>*   ContCircle           -&gt; 可直接显示的圆形 XLD 轮廓</c>
+<c>* 说明：</c>
+<c>*   如果这里不是 0 到 2π，而是 StartPhi 到 EndPhi，</c>
+<c>*   那生成的往往就是圆弧，不一定是完整的圆</c>
+<c></c>
+<c>* 显示</c>
+<l>*dev_set_color ('yellow')</l>
+<l>*dev_display (Line)</l>
+<l>dev_set_color ('green')</l>
+<l>dev_display (ContCircle)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

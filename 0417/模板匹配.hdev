@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* =========================</c>
+<c>* 1. 参数区</c>
+<c>* =========================</c>
+<l>minScore := 0.6</l>
+<l>numMatches := 1</l>
+<l>maxOverlap := 0.5</l>
+<l>subPixel := 'least_squares'</l>
+<l>numLevels := 0</l>
+<l>greediness := 0.9</l>
+<l>crossSize := 20</l>
+<c></c>
+<c>* 角度范围（弧度）</c>
+<l>startAngleRad := rad(0)</l>
+<l>angleExtentRad := rad(360)</l>
+<c></c>
+<c>* 是否循环播放</c>
+<l>loopPlay := true</l>
+<l>delaySec := 0.5</l>
+<c></c>
+<c>* =========================</c>
+<c>* 2. 读取模板图</c>
+<c>* =========================</c>
+<l>read_image (templateImage, 'D:/HTH/课堂资料/Image/模板匹配+几何变换+测量/lk_01.bmp')</l>
+<l>dev_display (templateImage)</l>
+<l>dev_set_draw ('margin')</l>
+<l>dev_set_line_width (2)</l>
+<l>dev_get_window (windowHandle)</l>
+<c></c>
+<c>* =========================</c>
+<c>* 3. 绘制搜索框（蓝色）</c>
+<c>* =========================</c>
+<l>dev_set_color ('blue')</l>
+<l>draw_rectangle1 (windowHandle, searchRow1, searchCol1, searchRow2, searchCol2)</l>
+<l>gen_rectangle1 (searchRectangle, searchRow1, searchCol1, searchRow2, searchCol2)</l>
+<l>gen_contour_region_xld (searchRectangle, searchRectangleXLD, 'border')</l>
+<c></c>
+<c>* =========================</c>
+<c>* 4. 绘制模板框（红色）</c>
+<c>* =========================</c>
+<l>dev_set_color ('red')</l>
+<l>draw_rectangle1 (windowHandle, templateRow1, templateCol1, templateRow2, templateCol2)</l>
+<l>gen_rectangle1 (templateRectangle, templateRow1, templateCol1, templateRow2, templateCol2)</l>
+<c></c>
+<c>* 裁剪模板区域</c>
+<l>reduce_domain (templateImage, templateRectangle, templateReduced)</l>
+<c></c>
+<c>* =========================</c>
+<c>* 5. 创建形状模板</c>
+<c>* =========================</c>
+<l>create_shape_model (templateReduced, \
+                    'auto', \
+                    startAngleRad, angleExtentRad, \
+                    'auto', \
+                    'auto', \
+                    'use_polarity', \
+                    'auto', \
+                    'auto', \
+                    modelId)</l>
+<c></c>
+<c>* 获取模型轮廓</c>
+<l>get_shape_model_contours (modelContours, modelId, 1)</l>
+<c></c>
+<c>* 生成十字线（位于原点，沿X/Y轴方向）</c>
+<l>gen_contour_polygon_xld (lineHorizontal, [-crossSize, crossSize], [0, 0])</l>
+<l>gen_contour_polygon_xld (lineVertical, [0, 0], [-crossSize, crossSize])</l>
+<l>concat_obj (lineHorizontal, lineVertical, crossXLD)</l>
+<c></c>
+<c>* =========================</c>
+<c>* 6. 读取待匹配图像列表（请修改为实际路径）</c>
+<c>* =========================</c>
+<l>list_image_files ('D:/ProgramData/GitHub/Halcon/模板匹配+几何变换+测量', \
+                  'default', [], imageFiles)</l>
+<c></c>
+<c>* =========================</c>
+<c>* 7. 循环匹配（每帧重新绘制所有元素，避免文字被刷新）</c>
+<c>* =========================</c>
+<l>while (true)</l>
+<l>    for index := 0 to |imageFiles| - 1 by 1</l>
+<c>        * 读取当前图像</c>
+<l>        read_image (image, imageFiles[index])</l>
+<c>        </c>
+<c>        * 1) 显示图像</c>
+<l>        dev_display (image)</l>
+<c>        </c>
+<c>        * 2) 重新绘制搜索框轮廓（蓝色）</c>
+<l>        dev_set_color ('blue')</l>
+<l>        dev_display (searchRectangleXLD)</l>
+<c>        </c>
+<c>        * 3) 在搜索区域内进行模板匹配</c>
+<l>        reduce_domain (image, searchRectangle, imageReduced)</l>
+<l>        find_shape_model (imageReduced, modelId, \
+                          startAngleRad, angleExtentRad, \
+                          minScore, numMatches, maxOverlap, \
+                          subPixel, \
+                          numLevels, greediness, \
+                          matchRow, matchCol, matchAngle, matchScore)</l>
+<c>        </c>
+<c>        * 4) 若匹配成功，则显示匹配结果</c>
+<l>        if (|matchRow| &gt; 0)</l>
+<c>            * 显示绿色模型轮廓</c>
+<l>            dev_set_color ('green')</l>
+<l>            vector_angle_to_rigid (0, 0, 0, matchRow, matchCol, matchAngle, homMat2D)</l>
+<l>            affine_trans_contour_xld (modelContours, contoursAffineTrans, homMat2D)</l>
+<l>            dev_display (contoursAffineTrans)</l>
+<c>            </c>
+<c>            * 显示随模板旋转的十字线（黄色）</c>
+<l>            dev_set_color ('yellow')</l>
+<l>            affine_trans_contour_xld (crossXLD, crossRotated, homMat2D)</l>
+<l>            dev_display (crossRotated)</l>
+<l>        endif</l>
+<c>        </c>
+<c>        * 5) 等待指定时间</c>
+<l>        wait_seconds (delaySec)</l>
+<l>    endfor</l>
+<c>    </c>
+<c>    * 是否循环播放</c>
+<l>    if (loopPlay != true)</l>
+<l>        break</l>
+<l>    endif</l>
+<l>endwhile</l>
+<c></c>
+<c>* =========================</c>
+<c>* 8. 释放资源</c>
+<c>* =========================</c>
+<l>clear_shape_model (modelId)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

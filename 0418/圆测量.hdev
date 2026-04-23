@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* ==================================================</c>
+<c>* 定位 + 几何变换 + 圆测量 综合应用</c>
+<c>* ==================================================</c>
+<c></c>
+<c>* 输入：图像路径</c>
+<c>* 输出：ImageSrc（读取到的基准图像）</c>
+<l>read_image (ImageSrc, 'D:/ProgramData/GitHub/Halcon/模板匹配+几何变换+测量/lk_01.bmp')</l>
+<c></c>
+<c>* 输入：ImageSrc</c>
+<c>* 输出：在窗口中显示图像，无变量输出</c>
+<l>dev_display (ImageSrc)</l>
+<c></c>
+<c>* 输入：字符串 'margin'</c>
+<c>* 输出：设置绘制模式为边框，无变量输出</c>
+<l>dev_set_draw ('margin')</l>
+<c></c>
+<c>* 输入：当前活动显示窗口</c>
+<c>* 输出：WindowHandle（窗口句柄）</c>
+<l>dev_get_window (WindowHandle)</l>
+<c></c>
+<c>* -------------------------------</c>
+<c>* 1. 制作形状模板</c>
+<c>* -------------------------------</c>
+<c></c>
+<c>* 输入：WindowHandle（窗口句柄）</c>
+<c>* 输出：TemplateRegionRow1, TemplateRegionCol1, TemplateRegionRow2, TemplateRegionCol2（手动画矩形的四个坐标）</c>
+<l>draw_rectangle1 (WindowHandle,\
+                 TemplateRegionRow1, TemplateRegionCol1,\
+                 TemplateRegionRow2, TemplateRegionCol2)</l>
+<c></c>
+<c>* 输入：TemplateRegionRow1, TemplateRegionCol1, TemplateRegionRow2, TemplateRegionCol2（矩形坐标）</c>
+<c>* 输出：RegionTemplate（矩形区域）</c>
+<l>gen_rectangle1 (RegionTemplate,\
+                TemplateRegionRow1, TemplateRegionCol1,\
+                TemplateRegionRow2, TemplateRegionCol2)</l>
+<c></c>
+<c>* 输入：ImageSrc（原图）, RegionTemplate（模板区域）</c>
+<c>* 输出：ImageTemplate（裁剪后的模板图像）</c>
+<l>reduce_domain (ImageSrc, RegionTemplate, ImageTemplate)</l>
+<c></c>
+<c>* 输入：ImageTemplate（模板图像）, 角度范围、匹配方式等参数</c>
+<c>* 输出：ShapeModelID（形状模板句柄）</c>
+<l>create_shape_model (ImageTemplate,\
+                    'auto',\
+                    rad(0), rad(360),\
+                    'auto',\
+                    'auto',\
+                    'use_polarity',\
+                    'auto', 'auto',\
+                    ShapeModelID)</l>
+<c></c>
+<c>* 输入：ShapeModelID（形状模板句柄）, 轮廓层级 1</c>
+<c>* 输出：ContourShapeModel（模板轮廓）</c>
+<l>get_shape_model_contours (ContourShapeModel, ShapeModelID, 1)</l>
+<c></c>
+<c>* 输入：ImageSrc（待匹配图像）, ShapeModelID（形状模板）</c>
+<c>* 输出：TemplateRefRow, TemplateRefCol（模板参考位置）</c>
+<c>*      TemplateRefAngle（模板参考角度）</c>
+<c>*      TemplateRefScore（模板匹配分数）</c>
+<l>find_shape_model (ImageSrc,\
+                  ShapeModelID,\
+                  rad(0), rad(360),\
+                  0.5, 1, 0.5,\
+                  'least_squares',\
+                  0, 0.9,\
+                  TemplateRefRow, TemplateRefCol,\
+                  TemplateRefAngle,\
+                  TemplateRefScore)</l>
+<c></c>
+<c>* 输入：TemplateRefRow, TemplateRefCol（模板参考中心）, 十字大小 20, 角度 45°</c>
+<c>* 输出：ContourTemplateRefCross（模板参考中心十字）</c>
+<l>gen_cross_contour_xld (ContourTemplateRefCross, TemplateRefRow, TemplateRefCol, 20, rad(45))</l>
+<c></c>
+<c>* 输入：ImageSrc</c>
+<c>* 输出：显示图像，无变量输出</c>
+<l>dev_display (ImageSrc)</l>
+<c></c>
+<c>* 输入：字符串 'green'</c>
+<c>* 输出：设置显示颜色为绿色，无变量输出</c>
+<l>dev_set_color ('green')</l>
+<c></c>
+<c>* 输入：ContourTemplateRefCross（模板参考中心十字）</c>
+<c>* 输出：在窗口中显示十字，无变量输出</c>
+<l>dev_display (ContourTemplateRefCross)</l>
+<c></c>
+<c>* -------------------------------</c>
+<c>* 2. 制作圆测量模板</c>
+<c>* -------------------------------</c>
+<c></c>
+<c>* 输入：WindowHandle（窗口句柄）</c>
+<c>* 输出：MeasureDrawCenterRow, MeasureDrawCenterCol（手画圆心）</c>
+<c>*      MeasureDrawRadius（手画半径）</c>
+<l>draw_circle (WindowHandle, MeasureDrawCenterRow, MeasureDrawCenterCol, MeasureDrawRadius)</l>
+<c></c>
+<c>* 输入：无</c>
+<c>* 输出：MetrologyModelHandle（测量模型句柄）</c>
+<l>create_metrology_model (MetrologyModelHandle)</l>
+<c></c>
+<c>* 输入：MetrologyModelHandle（测量模型句柄）</c>
+<c>*      MeasureDrawCenterRow, MeasureDrawCenterCol, MeasureDrawRadius（圆的大致位置）</c>
+<c>*      测量参数（卡尺长度、宽度、平滑、阈值）</c>
+<c>* 输出：MeasureObjectIndex（圆测量对象索引）</c>
+<l>add_metrology_object_circle_measure (MetrologyModelHandle,\
+                                     MeasureDrawCenterRow, MeasureDrawCenterCol, MeasureDrawRadius,\
+                                     20, 5, 1, 30,\
+                                     [], [],\
+                                     MeasureObjectIndex)</l>
+<c></c>
+<c>* 输入：ImageTemplate（模板图像）, MetrologyModelHandle（测量模型）</c>
+<c>* 输出：在图像上执行圆测量，无直接变量输出</c>
+<l>apply_metrology_model (ImageTemplate, MetrologyModelHandle)</l>
+<c></c>
+<c>* 输入：MetrologyModelHandle（测量模型）, 'all', 'all'</c>
+<c>* 输出：ContourMeasureSample（小卡尺轮廓）</c>
+<c>*      MeasureSampleRows, MeasureSampleCols（采样点坐标）</c>
+<l>get_metrology_object_measures (ContourMeasureSample,\
+                               MetrologyModelHandle,\
+                               'all', 'all',\
+                               MeasureSampleRows, MeasureSampleCols)</l>
+<c></c>
+<c>* 输入：MetrologyModelHandle（测量模型）, 对象索引 0, 查询方式 'all_param'</c>
+<c>* 输出：MeasureRefParams（基准圆测量结果参数）</c>
+<l>get_metrology_object_result (MetrologyModelHandle,\
+                             0,\
+                             'all',\
+                             'result_type',\
+                             'all_param',\
+                             MeasureRefParams)</l>
+<c></c>
+<c>* 输入：MeasureRefParams（基准圆测量结果参数）</c>
+<c>* 输出：若为空则显示错误并停止程序</c>
+<l>if (|MeasureRefParams| = 0)</l>
+<c>    * 输入：提示文字、显示位置、颜色</c>
+<c>    * 输出：在窗口显示文本，无变量输出</c>
+<l>    dev_disp_text ('圆测量失败，请重新制作模板', 'window', 10, 10, 'red', [], [])</l>
+<c>    </c>
+<c>    * 输入：无</c>
+<c>    * 输出：程序停止</c>
+<l>    stop ()</l>
+<l>endif</l>
+<c></c>
+<c>* 输入：MeasureRefParams（基准圆测量结果数组）</c>
+<c>* 输出：CircleRefCenterRow（基准圆心行）</c>
+<l>CircleRefCenterRow := MeasureRefParams[0]</l>
+<c></c>
+<c>* 输入：MeasureRefParams（基准圆测量结果数组）</c>
+<c>* 输出：CircleRefCenterCol（基准圆心列）</c>
+<l>CircleRefCenterCol := MeasureRefParams[1]</l>
+<c></c>
+<c>* 输入：MeasureRefParams（基准圆测量结果数组）</c>
+<c>* 输出：CircleRefRadius（基准圆半径）</c>
+<l>CircleRefRadius    := MeasureRefParams[2]</l>
+<c></c>
+<c>* 输入：CircleRefCenterRow, CircleRefCenterCol（基准圆心）, CircleRefRadius（基准圆半径）</c>
+<c>* 输出：ContourCircleRef（基准圆轮廓）</c>
+<l>gen_circle_contour_xld (ContourCircleRef,\
+                        CircleRefCenterRow, CircleRefCenterCol, CircleRefRadius,\
+                        0, rad(360), 'positive', 1)</l>
+<c></c>
+<c>* 输入：CircleRefCenterRow, CircleRefCenterCol（基准圆心）, 十字大小 20, 角度 45°</c>
+<c>* 输出：ContourCircleRefCenterCross（基准圆心十字）</c>
+<l>gen_cross_contour_xld (ContourCircleRefCenterCross,\
+                       CircleRefCenterRow, CircleRefCenterCol,\
+                       20, rad(45))</l>
+<c></c>
+<c>* 输入：ImageSrc</c>
+<c>* 输出：显示基准图像，无变量输出</c>
+<l>dev_display (ImageSrc)</l>
+<c></c>
+<c>* 输入：字符串 'green'</c>
+<c>* 输出：设置显示颜色为绿色，无变量输出</c>
+<l>dev_set_color ('green')</l>
+<c></c>
+<c>* 输入：ContourTemplateRefCross（模板参考中心十字）</c>
+<c>* 输出：显示模板参考中心，无变量输出</c>
+<l>dev_display (ContourTemplateRefCross)</l>
+<c></c>
+<c>* 输入：字符串 'blue'</c>
+<c>* 输出：设置显示颜色为蓝色，无变量输出</c>
+<l>dev_set_color ('blue')</l>
+<c></c>
+<c>* 输入：ContourCircleRef（基准圆轮廓）</c>
+<c>* 输出：显示基准圆，无变量输出</c>
+<l>dev_display (ContourCircleRef)</l>
+<c></c>
+<c>* 输入：字符串 'cyan'</c>
+<c>* 输出：设置显示颜色为青色，无变量输出</c>
+<l>dev_set_color ('cyan')</l>
+<c></c>
+<c>* 输入：ContourCircleRefCenterCross（基准圆心十字）</c>
+<c>* 输出：显示基准圆心，无变量输出</c>
+<l>dev_display (ContourCircleRefCenterCross)</l>
+<c></c>
+<c>* -------------------------------</c>
+<c>* 3. 批量检测与位姿变换</c>
+<c>* -------------------------------</c>
+<c></c>
+<c>* 输入：图像文件夹路径、读取模式</c>
+<c>* 输出：ImageFileList（图像文件列表）</c>
+<l>list_image_files ('D:/ProgramData/GitHub/Halcon/模板匹配+几何变换+测量', 'default', [], ImageFileList)</l>
+<c></c>
+<c>* 输入：ImageFileList 的索引范围</c>
+<c>* 输出：ImageIndex（当前图像索引）</c>
+<l>for ImageIndex := 1 to |ImageFileList| - 1 by 1</l>
+<c></c>
+<c>    * 输入：ImageFileList[ImageIndex]（当前图像路径）</c>
+<c>    * 输出：ImageSrc（当前图像）</c>
+<l>    read_image (ImageSrc, ImageFileList[ImageIndex])</l>
+<c></c>
+<c>    * 输入：ImageSrc（当前图像）, ShapeModelID（模板）</c>
+<c>    * 输出：TemplateCurRow, TemplateCurCol（当前模板位置）</c>
+<c>    *      TemplateCurAngle（当前模板角度）</c>
+<c>    *      TemplateCurScore（当前模板匹配分数）</c>
+<l>    find_shape_model (ImageSrc,\
+                      ShapeModelID,\
+                      rad(0), rad(360),\
+                      0.5, 1, 0.5,\
+                      'least_squares',\
+                      0, 0.9,\
+                      TemplateCurRow, TemplateCurCol, TemplateCurAngle,\
+                      TemplateCurScore)</l>
+<c></c>
+<c>    * 输入：TemplateCurScore（当前模板匹配分数）</c>
+<c>    * 输出：若匹配失败则显示提示并跳过当前图像</c>
+<l>    if (|TemplateCurScore| = 0)</l>
+<c>        * 输入：ImageSrc</c>
+<c>        * 输出：显示当前图像，无变量输出</c>
+<l>        dev_display (ImageSrc)</l>
+<c></c>
+<c>        * 输入：提示文字、显示位置、颜色</c>
+<c>        * 输出：显示模板匹配失败提示，无变量输出</c>
+<l>        dev_disp_text ('当前图像模板匹配失败', 'window', 10, 10, 'red', [], [])</l>
+<c></c>
+<c>        * 输入：等待时间 0.5 秒</c>
+<c>        * 输出：程序暂停 0.5 秒</c>
+<l>        wait_seconds (0.5)</l>
+<c></c>
+<l>        if (ImageIndex = |ImageFileList| - 1)</l>
+<l>            ImageIndex := -1</l>
+<l>        endif</l>
+<l>        continue</l>
+<l>    endif</l>
+<c></c>
+<c>    * 输入：TemplateCurRow, TemplateCurCol（当前模板中心）, 十字大小 20, 角度 45°</c>
+<c>    * 输出：ContourTemplateCurCross（当前模板中心十字）</c>
+<l>    gen_cross_contour_xld (ContourTemplateCurCross, TemplateCurRow, TemplateCurCol, 20, rad(45))</l>
+<c></c>
+<c>    * 输入：模型原点 (0,0,0), 当前模板位姿 (TemplateCurRow, TemplateCurCol, TemplateCurAngle)</c>
+<c>    * 输出：HomMat2DModelToCurrent（模型坐标系到当前图像坐标系的二维刚性变换矩阵）</c>
+<l>    vector_angle_to_rigid (0, 0, 0,\
+                           TemplateCurRow, TemplateCurCol, TemplateCurAngle,\
+                           HomMat2DModelToCurrent)</l>
+<c></c>
+<c>    * 输入：ContourShapeModel（模板轮廓）, HomMat2DModelToCurrent（变换矩阵）</c>
+<c>    * 输出：ContourShapeModelTrans（变换后的模板轮廓）</c>
+<l>    affine_trans_contour_xld (ContourShapeModel, ContourShapeModelTrans, HomMat2DModelToCurrent)</l>
+<c></c>
+<c>    * 输入：基准模板位姿 (TemplateRefRow, TemplateRefCol, TemplateRefAngle)</c>
+<c>    *      当前模板位姿 (TemplateCurRow, TemplateCurCol, TemplateCurAngle)</c>
+<c>    * 输出：HomMat2DRefToCurrent（基准图到当前图的二维刚性变换矩阵）</c>
+<l>    vector_angle_to_rigid (TemplateRefRow, TemplateRefCol, TemplateRefAngle,\
+                           TemplateCurRow, TemplateCurCol, TemplateCurAngle,\
+                           HomMat2DRefToCurrent)</l>
+<c></c>
+<c>    * 输入：HomMat2DRefToCurrent（变换矩阵）, 基准圆心 (CircleRefCenterRow, CircleRefCenterCol)</c>
+<c>    * 输出：CircleCurCenterRow, CircleCurCenterCol（当前图中的初始圆心位置）</c>
+<l>    affine_trans_point_2d (HomMat2DRefToCurrent,\
+                           CircleRefCenterRow, CircleRefCenterCol,\
+                           CircleCurCenterRow, CircleCurCenterCol)</l>
+<c></c>
+<c>    * 输入：MetrologyModelHandle（旧测量模型句柄）</c>
+<c>    * 输出：清空旧测量模型，无变量输出</c>
+<l>    clear_metrology_model (MetrologyModelHandle)</l>
+<c></c>
+<c>    * 输入：无</c>
+<c>    * 输出：MetrologyModelHandle（新的测量模型句柄）</c>
+<l>    create_metrology_model (MetrologyModelHandle)</l>
+<c></c>
+<c>    * 输入：MetrologyModelHandle（新的测量模型）</c>
+<c>    *      CircleCurCenterRow, CircleCurCenterCol（当前初始圆心）</c>
+<c>    *      CircleRefRadius（基准半径）</c>
+<c>    * 输出：MeasureObjectIndexCur（当前圆测量对象索引）</c>
+<l>    add_metrology_object_circle_measure (MetrologyModelHandle,\
+                                         CircleCurCenterRow, CircleCurCenterCol, CircleRefRadius,\
+                                         20, 5, 1, 30,\
+                                         [], [],\
+                                         MeasureObjectIndexCur)</l>
+<c></c>
+<c>    * 输入：ImageSrc（当前图像）, MetrologyModelHandle（当前测量模型）</c>
+<c>    * 输出：在当前图像执行圆测量，无直接变量输出</c>
+<l>    apply_metrology_model (ImageSrc, MetrologyModelHandle)</l>
+<c></c>
+<c>    * 输入：MetrologyModelHandle（当前测量模型）, 查询方式 'all_param'</c>
+<c>    * 输出：MeasureCurParams（当前圆测量结果参数）</c>
+<l>    get_metrology_object_result (MetrologyModelHandle,\
+                                 0,\
+                                 'all',\
+                                 'result_type',\
+                                 'all_param',\
+                                 MeasureCurParams)</l>
+<c></c>
+<c>    * 输入：MetrologyModelHandle（当前测量模型）</c>
+<c>    * 输出：ContourMeasureSampleCur（当前小卡尺轮廓）</c>
+<c>    *      MeasureSampleRowsCur, MeasureSampleColsCur（当前采样点坐标）</c>
+<l>    get_metrology_object_measures (ContourMeasureSampleCur,\
+                                   MetrologyModelHandle,\
+                                   'all', 'all',\
+                                   MeasureSampleRowsCur, MeasureSampleColsCur)</l>
+<c></c>
+<c>    * 输入：ImageSrc</c>
+<c>    * 输出：显示当前图像，无变量输出</c>
+<l>    dev_display (ImageSrc)</l>
+<c></c>
+<c>    * 输入：字符串 'green'</c>
+<c>    * 输出：设置颜色为绿色，无变量输出</c>
+<l>    dev_set_color ('green')</l>
+<c></c>
+<c>    * 输入：ContourShapeModelTrans（变换后的模板轮廓）</c>
+<c>    * 输出：显示模板轮廓，无变量输出</c>
+<l>    dev_display (ContourShapeModelTrans)</l>
+<c></c>
+<c>    * 输入：字符串 'red'</c>
+<c>    * 输出：设置颜色为红色，无变量输出</c>
+<l>    dev_set_color ('red')</l>
+<c></c>
+<c>    * 输入：ContourTemplateCurCross（当前模板中心十字）</c>
+<c>    * 输出：显示模板中心，无变量输出</c>
+<l>    dev_display (ContourTemplateCurCross)</l>
+<c></c>
+<c>    * 输入：字符串 'yellow'</c>
+<c>    * 输出：设置颜色为黄色，无变量输出</c>
+<l>    dev_set_color ('yellow')</l>
+<c></c>
+<c>    * 输入：ContourMeasureSampleCur（当前小卡尺轮廓）</c>
+<c>    * 输出：显示小卡尺，无变量输出</c>
+<l>    dev_display (ContourMeasureSampleCur)</l>
+<c></c>
+<c>    * 输入：MeasureCurParams（当前圆测量结果参数）</c>
+<c>    * 输出：若结果足够，则提取圆心和半径并显示</c>
+<l>    if (|MeasureCurParams| &gt;= 3)</l>
+<c></c>
+<c>        * 输出：CircleResultCenterRow（当前圆心行）</c>
+<l>        CircleResultCenterRow := MeasureCurParams[0]</l>
+<c></c>
+<c>        * 输出：CircleResultCenterCol（当前圆心列）</c>
+<l>        CircleResultCenterCol := MeasureCurParams[1]</l>
+<c></c>
+<c>        * 输出：CircleResultRadius（当前半径）</c>
+<l>        CircleResultRadius    := MeasureCurParams[2]</l>
+<c></c>
+<c>        * 输入：CircleResultCenterRow, CircleResultCenterCol, CircleResultRadius</c>
+<c>        * 输出：ContourCircleResult（当前圆测量结果轮廓）</c>
+<l>        gen_circle_contour_xld (ContourCircleResult,\
+                                CircleResultCenterRow, CircleResultCenterCol, CircleResultRadius,\
+                                0, rad(360), 'positive', 1)</l>
+<c></c>
+<c>        * 输入：CircleResultCenterRow, CircleResultCenterCol</c>
+<c>        * 输出：ContourCircleResultCenterCross（当前圆心十字）</c>
+<l>        gen_cross_contour_xld (ContourCircleResultCenterCross,\
+                               CircleResultCenterRow, CircleResultCenterCol,\
+                               20, rad(45))</l>
+<c></c>
+<l>        dev_set_color ('blue')</l>
+<l>        dev_display (ContourCircleResult)</l>
+<l>        dev_set_color ('cyan')</l>
+<l>        dev_display (ContourCircleResultCenterCross)</l>
+<c></c>
+<l>    else</l>
+<l>        dev_disp_text ('当前图像圆测量失败', 'window', 10, 10, 'yellow', [], [])</l>
+<l>    endif</l>
+<l>    if (ImageIndex = |ImageFileList| - 1)</l>
+<l>        ImageIndex := -1</l>
+<l>    endif</l>
+<l>    wait_seconds (0.5)</l>
+<c></c>
+<l>endfor</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

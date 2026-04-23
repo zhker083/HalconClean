@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* ui-2</c>
+<l>read_image (Rim, 'D:/ProgramData/GitHub/Halcon/0404/rim.png')</l>
+<l>dev_display (Rim)</l>
+<c></c>
+<c>* 循环监控鼠标：左键记录点，右键结束</c>
+<l>Button := -1</l>
+<c></c>
+<l>RowList := []</l>
+<l>ColList := []</l>
+<c></c>
+<l>dev_get_window (WH)</l>
+<l>while (Button != 4)</l>
+<l>    try</l>
+<l>        get_mposition (WH, Row, Col, Button)</l>
+<l>    catch (Exception)</l>
+<l>    endtry</l>
+<c>    * 获取鼠标位置</c>
+<c>    * 左键=1  中键=2  右键=4</c>
+<l>    if (Button == 1)</l>
+<l>        RowList := [RowList, Row]</l>
+<l>        ColList := [ColList, Col]</l>
+<l>        gen_contour_polygon_xld (Contour, RowList, ColList)</l>
+<c>        </c>
+<l>    endif</l>
+<l>endwhile</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

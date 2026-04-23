@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image (Rim, 'D:/ProgramData/GitHub/Halcon/0404/rim.png')</l>
+<l>dev_get_window (WindowHandle)</l>
+<l>draw_rectangle1 (WindowHandle, Row1, Column1, Row2, Column2)</l>
+<l>draw_rectangle1_mod (WindowHandle, Row1, Column1, Row2, Column2, Row11, Column11, Row21, Column21)</l>
+<l>gen_rectangle1 (Rectangle, Row11, Column11, Row21, Column21)</l>
+<l>draw_rectangle2 (WindowHandle, Row, Column, Phi, Length1, Length2)</l>
+<l>draw_rectangle2_mod (WindowHandle, Row, Column, Phi, Length1, Length2, Row3, Column3, Phi1, Length11, Length21)</l>
+<l>gen_rectangle2 (Rectangle1, Row3, Column3, Phi1, Length11, Length21)</l>
+<l>draw_circle (WindowHandle, Row4, Column4, Radius)</l>
+<l>draw_circle_mod (WindowHandle, Row4, Column4, Radius, Row5, Column5, Radius1)</l>
+<l>gen_circle (Circle, Row5, Column5, Radius1)</l>
+<l>draw_point (WindowHandle, Row6, Column6)</l>
+<l>draw_point_mod (WindowHandle, Row6, Column6, Row7, Column7)</l>
+<l>gen_cross_contour_xld (Cross, Row7, Column7, 6, Phi1)</l>
+<l>draw_line (WindowHandle, Row12, Column12, Row22, Column22)</l>
+<l>draw_line_mod (WindowHandle, Row12, Column12, Row22, Column22, Row13, Column13, Row23, Column23)</l>
+<c>*显示直线</c>
+<l>*disp_line (WindowHandle, Row13, Column13, Row23, Column23)</l>
+<c>*创建任意点连接线</c>
+<l>gen_contour_polygon_xld (Contour, [Row13,Row23], [Column13,Column23])</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>*仿射变换</c>
+<c>* =========================</c>
+<c>* 一、初始化</c>
+<c>* =========================</c>
+<l>dev_close_window ()</l>
+<l>read_image (Image, 'D:/ProgramData/GitHub/Halcon/模板匹配+几何变换+测量/lk_01.bmp')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>dev_open_window (0, 0, Width, Height, 'black', WindowHandle)</l>
+<l>dev_display (Image)</l>
+<c></c>
+<c></c>
+<c>* =========================</c>
+<c>* 二、平移变换</c>
+<c>* =========================</c>
+<c>* 1. 先生成单位矩阵</c>
+<l>hom_mat2d_identity (HomMat2DIdentity)</l>
+<c></c>
+<c>* 2. 在单位矩阵基础上添加平移变换</c>
+<c>* 参数说明：</c>
+<c>* HomMat2DIdentity : 原始矩阵</c>
+<c>* 63               : 行方向平移量（向下）</c>
+<c>* 64               : 列方向平移量（向右）</c>
+<c>* HomMat2DTranslate: 输出平移矩阵</c>
+<l>hom_mat2d_translate (HomMat2DIdentity, 63, 64, HomMat2DTranslate)</l>
+<c></c>
+<c>* 3. 对图像做仿射变换</c>
+<c>* 'constant' : 插值方式</c>
+<c>* 'false'    : 输出图像大小不自动扩展</c>
+<l>affine_trans_image (Image, ImageTranslate, HomMat2DTranslate, 'constant', 'false')</l>
+<c></c>
+<l>dev_display (ImageTranslate)</l>
+<c></c>
+<c></c>
+<c>* =========================</c>
+<c>* 三、旋转变换</c>
+<c>* =========================</c>
+<l>hom_mat2d_identity (HomMat2DIdentity)</l>
+<c></c>
+<c>* 围绕点(Row=0, Col=1)旋转45°</c>
+<c>* rad(45) 表示把角度45°转换成弧度</c>
+<l>hom_mat2d_rotate (HomMat2DIdentity, rad(45), 0, 1, HomMat2DRotate)</l>
+<c></c>
+<l>affine_trans_image (Image, ImageRotate, HomMat2DRotate, 'constant', 'false')</l>
+<c></c>
+<l>dev_display (ImageRotate)</l>
+<c></c>
+<c></c>
+<c>* =========================</c>
+<c>* 四、缩放变换</c>
+<c>* =========================</c>
+<l>hom_mat2d_identity (HomMat2DIdentity)</l>
+<c></c>
+<c>* 围绕点(Row=0, Col=1)进行缩放</c>
+<c>* 行方向缩放比例 = 0.5</c>
+<c>* 列方向缩放比例 = 1</c>
+<c>* 即：竖直方向压缩为一半，水平方向不变</c>
+<l>hom_mat2d_scale (HomMat2DIdentity, 0.5, 1, 0, 1, HomMat2DScale)</l>
+<c></c>
+<l>affine_trans_image (Image, ImageScale, HomMat2DScale, 'constant', 'false')</l>
+<c></c>
+<l>dev_display (ImageScale)</l>
+<c></c>
+<c>* 查看原图和缩放后图像大小</c>
+<l>get_image_size (Image, Width0, Height0)</l>
+<l>get_image_size (ImageScale, Width1, Height1)</l>
+<c></c>
+<c></c>
+<c>* =========================</c>
+<c>* 五、倾斜变换</c>
+<c>* =========================</c>
+<l>hom_mat2d_identity (HomMat2DIdentity)</l>
+<c></c>
+<c>* 参数说明：</c>
+<c>* rad(45) : 倾斜角度</c>
+<c>* 'x'     : 沿 x 轴方向倾斜</c>
+<c>* 0,0     : 倾斜原点</c>
+<l>hom_mat2d_slant (HomMat2DIdentity, rad(45), 'x', 0, 0, HomMat2DSlant)</l>
+<c></c>
+<l>affine_trans_image (Image, ImageSlant, HomMat2DSlant, 'constant', 'false')</l>
+<c></c>
+<l>dev_display (ImageSlant)</l>
+<c></c>
+<l>get_image_size (ImageSlant, Width2, Height2)</l>
+<c></c>
+<c>* 生成两条辅助线（轮廓）</c>
+<c>* 竖线：从上到下，位于图像中间列</c>
+<l>gen_contour_polygon_xld (ContourVertical, [0, Height2], [Width2/2, Width2/2])</l>
+<c></c>
+<c>* 横线：从左到右，位于图像中间行</c>
+<l>gen_contour_polygon_xld (ContourHorizontal, [Height2/2, Height2/2], [0, Width2])</l>
+<c></c>
+<l>dev_set_color ('green')</l>
+<l>dev_display (ContourVertical)</l>
+<l>dev_display (ContourHorizontal)</l>
+<c></c>
+<c></c>
+<c>* =========================</c>
+<c>* 六、将圆心(244,244)平移到图像中心，再旋转90°</c>
+<c>* =========================</c>
+<c>* 已知圆心坐标</c>
+<l>CircleRow := 244</l>
+<l>CircleCol := 244</l>
+<c></c>
+<c>* 目标：把圆心移到图像中心</c>
+<l>CenterRow := Height / 2</l>
+<l>CenterCol := Width / 2</l>
+<c></c>
+<c>* 计算平移量</c>
+<l>dtR := CenterRow - CircleRow</l>
+<l>dtC := CenterCol - CircleCol</l>
+<c></c>
+<c>* -------- 第一步：平移到中心 --------</c>
+<l>hom_mat2d_identity (HomMat2DIdentity)</l>
+<l>hom_mat2d_translate (HomMat2DIdentity, dtR, dtC, HomMat2DMoveToCenter)</l>
+<c></c>
+<l>affine_trans_image (Image, ImageMoveToCenter, HomMat2DMoveToCenter, 'constant', 'false')</l>
+<c></c>
+<l>dev_display (ImageMoveToCenter)</l>
+<c></c>
+<c>* -------- 第二步：绕图像中心旋转90° --------</c>
+<l>hom_mat2d_identity (HomMat2DIdentity)</l>
+<l>hom_mat2d_rotate (HomMat2DIdentity, rad(90), CenterRow, CenterCol, HomMat2DRotate90)</l>
+<c></c>
+<l>affine_trans_image (ImageMoveToCenter, ImageMoveAndRotate, HomMat2DRotate90, 'constant', 'false')</l>
+<c></c>
+<l>dev_display (ImageMoveAndRotate)</l>
+<c></c>
+<c></c>
+<c>* =========================</c>
+<c>* 七、刚性仿射变换</c>
+<c>* =========================</c>
+<c>* 刚性变换 = 平移 + 旋转</c>
+<c>* 特点：不改变物体形状和大小</c>
+<c>*</c>
+<c>* 含义：</c>
+<c>* 原始参考点：   (244,244)</c>
+<c>* 原始角度：     0°</c>
+<c>* 目标参考点：   (图像中心)</c>
+<c>* 目标角度：     90°</c>
+<c>* 输出：刚性变换矩阵 HomMat2DRigid</c>
+<l>vector_angle_to_rigid (CircleRow, CircleCol, rad(0), \
+                       CenterRow, CenterCol, rad(90), \
+                       HomMat2DRigid)</l>
+<c></c>
+<l>affine_trans_image (Image, ImageRigid, HomMat2DRigid, 'constant', 'false')</l>
+<c></c>
+<l>dev_display (ImageRigid)</l>
+<c></c>
+<c></c>
+<c>* =========================</c>
+<c>* 八、轮廓的仿射变换</c>
+<c>* =========================</c>
+<c>* 将前面生成的横线轮廓做刚性变换</c>
+<l>affine_trans_contour_xld (ContourHorizontal, ContourHorizontalRigid, HomMat2DRigid)</l>
+<c></c>
+<l>dev_set_color ('red')</l>
+<l>dev_display (ContourHorizontalRigid)</l>
+<c></c>
+<c></c>
+<c>* =========================</c>
+<c>* 九、区域的仿射变换（修正错误）</c>
+<c>* =========================</c>
+<c>* 你原来这里是空输入：</c>
+<c>* affine_trans_region (, RegionAffineTrans, HomMat2D, 'nearest_neighbor')</c>
+<c>* 这是错误的，因为 affine_trans_region 需要先有一个区域对象</c>
+<c>*</c>
+<c>* 这里先用阈值分割生成一个区域，再做仿射变换</c>
+<l>threshold (Image, Region, 128, 255)</l>
+<c></c>
+<l>affine_trans_region (Region, RegionRigid, HomMat2DRigid, 'nearest_neighbor')</l>
+<c></c>
+<l>dev_set_draw ('margin')</l>
+<l>dev_set_color ('blue')</l>
+<l>dev_display (RegionRigid)</l>
+<c></c>
+<c></c>
+<c>* =========================</c>
+<c>* 十、点的仿射变换</c>
+<c>* =========================</c>
+<c>* 将点(64,64)按刚性矩阵做变换，得到新点(Qx,Qy)</c>
+<l>affine_trans_point_2d (HomMat2DRigid, 64, 64, Qx, Qy)</l>
+<c></c>
+<c>* 显示原点和变换后的点</c>
+<l>gen_cross_contour_xld (CrossSrc, 64, 64, 20, 0.785398)</l>
+<l>gen_cross_contour_xld (CrossDst, Qx, Qy, 20, 0.785398)</l>
+<c></c>
+<l>dev_set_color ('yellow')</l>
+<l>dev_display (CrossSrc)</l>
+<c></c>
+<l>dev_set_color ('cyan')</l>
+<l>dev_display (CrossDst)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

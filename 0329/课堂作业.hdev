@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_update_off ()</l>
+<l>dev_close_window ()</l>
+<c></c>
+<l>read_image (Image, 'D:/ProgramData/GitHub/Halcon/0329/pellets.png')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>dev_open_window (0, 0, Width, Height, 'black', WindowHandle)</l>
+<l>dev_set_draw ('fill')</l>
+<l>dev_set_line_width (2)</l>
+<l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
+<c></c>
+<c>* 1. 阈值分割，提取石头区域</c>
+<l>threshold (Image, Region, 100, 255)</l>
+<c></c>
+<c>* 2. 开运算：去掉小噪声、小毛刺</c>
+<l>opening_circle (Region, RegionOpening, 3.5)</l>
+<c></c>
+<c>* 3. 连通域分割</c>
+<l>connection (RegionOpening, ConnectedRegions)</l>
+<c></c>
+<c>* 4. 按面积去掉太小杂质</c>
+<l>select_shape (ConnectedRegions, RegionAreaSelected, 'area', 'and', 400, 99999)</l>
+<c></c>
+<c>* 5. 腐蚀：让紧挨着的石头尽量断开</c>
+<l>erosion_circle (RegionAreaSelected, RegionErosion, 7)</l>
+<c></c>
+<c>* 6. 再次做连通域，分开粘连石头</c>
+<l>connection (RegionErosion, ConnectedRegions1)</l>
+<c></c>
+<c>* 7. 适当膨胀，恢复一点石头大小</c>
+<l>dilation_circle (ConnectedRegions1, RegionDilation, 7)</l>
+<c></c>
+<c>* 8. 统计目标个数</c>
+<l>count_obj (RegionDilation, Number)</l>
+<c></c>
+<c>* 9. 统一显示，避免拖动窗口时部分结果消失</c>
+<l>dev_clear_window ()</l>
+<l>dev_display (Image)</l>
+<c></c>
+<c>* 显示最终分离结果</c>
+<l>dev_set_color ('green')</l>
+<l>dev_display (RegionDilation)</l>
+<c></c>
+<c>* 逐个标注中心坐标</c>
+<l>for Index := 1 to Number by 1</l>
+<c>    * 取出第 Index 个石头区域</c>
+<l>    select_obj (RegionDilation, OneRegion, Index)</l>
+<c></c>
+<c>    * 计算该石头的面积和中心坐标</c>
+<l>    area_center (OneRegion, Area, Row, Column)</l>
+<c></c>
+<c>    * 显示中心十字</c>
+<l>    gen_cross_contour_xld (Cross, Row, Column, 12, 0.785398)</l>
+<l>    dev_set_color ('red')</l>
+<l>    dev_display (Cross)</l>
+<c></c>
+<c>    * 显示编号和坐标</c>
+<l>    Message := Index$'d' + ': (' + Row$'.1f' + ', ' + Column$'.1f' + ')'</l>
+<l>    dev_disp_text (Message, 'image', Row, Column, 'red', ['box'], ['false'])</l>
+<l>endfor</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

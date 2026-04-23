@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>open_framegrabber ('DirectShow', 0, 0, 0, 0, 0, 0, 'default', -1, 'rgb', '', 'default', 'default', 'default', -1, -1, AcqHandle1)</l>
+<l>grab_image_start (AcqHandle1, -1)</l>
+<c></c>
+<c>*配置参数需要在正式生产前完成</c>
+<c>*=============================</c>
+<c>*        value region</c>
+<l>create_bar_code_model ([], [], BarCodeHandle)</l>
+<c>*设置模型参数 双击set_bar_code_param打开算子窗口选择'majority_voting', 'true'</c>
+<c>*'majority_voting'投票模式--&gt;提高可靠性</c>
+<c>*true</c>
+<l>set_bar_code_param (BarCodeHandle, 'majority_voting', 'true')</l>
+<c>*设置扫描检测条数 不是越多越好</c>
+<l>set_bar_code_param (BarCodeHandle, 'num_scanlines', 5)</l>
+<c>*识别条码个数</c>
+<c>*检测所有1--&gt;0</c>
+<l>set_bar_code_param (BarCodeHandle, 'stop_after_result_num', 1)</l>
+<c>*条码最小宽度  100单位为像素</c>
+<l>set_bar_code_param (BarCodeHandle, 'barcode_width_min', 300)</l>
+<c>*条码最小高度  10单位为像素</c>
+<l>set_bar_code_param (BarCodeHandle, 'barcode_height_min', 10)</l>
+<c>*        value region</c>
+<c>*=============================</c>
+<l>while (true)</l>
+<c>    *异步抓取</c>
+<c>    *输出image</c>
+<l>    grab_image_async (Image, AcqHandle1, -1)</l>
+<c>    *rgb转灰度图</c>
+<l>    rgb1_to_gray (Image, GrayImage)</l>
+<c>    </c>
+<l>    find_bar_code (GrayImage, SymbolRegions, BarCodeHandle, 'auto', DecodedDataStrings)</l>
+<c>    </c>
+<l>    dev_disp_text (DecodedDataStrings, 'window', 10, 0, 'black', [], [])</l>
+<c>    </c>
+<l>endwhile</l>
+<c></c>
+<l>close_framegrabber (AcqHandle1)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

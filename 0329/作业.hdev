@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="19.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image (Fin1, 'D:/ProgramData/GitHub/Halcon/0329/fin1.png')</l>
+<c></c>
+<l>threshold (Fin1, Region1, 0, 45)</l>
+<l>threshold (Fin1, Region2, 0, 140)</l>
+<l>fill_up (Region1, RegionFillUp)</l>
+<c></c>
+<l>opening_circle (RegionFillUp, RegionOpening, 10)</l>
+<c></c>
+<l>difference (Region2, RegionOpening, RegionDifference)</l>
+<c></c>
+<l>opening_circle (RegionDifference, maoci, 3.5)</l>
+<l>dev_display (Fin1)</l>
+<l>dev_display (maoci)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
